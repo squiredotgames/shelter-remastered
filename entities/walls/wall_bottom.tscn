@@ -1,0 +1,18 @@
+[gd_scene format=3 uid="uid://bqj8m0wallb0t"]
+
+[ext_resource type="Script" uid="uid://4ar5f3ertxyg" path="res://entities/walls/wall.gd" id="1_wall"]
+[ext_resource type="Texture2D" uid="uid://b7gurx5g4lvs2" path="res://sprites/Walls/No Damage/wall nd bot.png" id="2_tex"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_bot"]
+size = Vector2(48, 16)
+
+[node name="WallBottom" type="StaticBody2D"]
+collision_layer = 1
+script = ExtResource("1_wall")
+orientation = 1
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_tex")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_bot")

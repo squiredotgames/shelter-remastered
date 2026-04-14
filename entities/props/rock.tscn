@@ -1,0 +1,16 @@
+[gd_scene format=3 uid="uid://640o6fvr61a"]
+
+[ext_resource type="Texture2D" uid="uid://dbma2tw3j0lag" path="res://sprites/Environment/Background/A Rock 02 light.png" id="1_o0qsl"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_68h2w"]
+radius = 5.0
+
+[node name="Rock" type="StaticBody2D" unique_id=1610345059]
+collision_layer = 1
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=675855394]
+texture = ExtResource("1_o0qsl")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1813785382]
+position = Vector2(0, 3)
+shape = SubResource("CircleShape2D_68h2w")

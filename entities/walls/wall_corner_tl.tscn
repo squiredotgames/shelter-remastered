@@ -1,0 +1,18 @@
+[gd_scene format=3 uid="uid://bqj8m0wcrntl"]
+
+[ext_resource type="Script" uid="uid://4ar5f3ertxyg" path="res://entities/walls/wall.gd" id="1_wall"]
+[ext_resource type="Texture2D" uid="uid://drdawn028bsk8" path="res://sprites/Walls/corner01.png" id="2_tex"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_corner"]
+size = Vector2(16, 16)
+
+[node name="WallCornerTL" type="StaticBody2D"]
+collision_layer = 1
+script = ExtResource("1_wall")
+orientation = 4
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_tex")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_corner")

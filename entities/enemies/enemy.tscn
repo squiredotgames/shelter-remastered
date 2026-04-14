@@ -1,0 +1,122 @@
+[gd_scene format=3 uid="uid://cw5ntdtophw0"]
+
+[ext_resource type="Script" path="res://entities/enemies/enemy.gd" id="1_enemy"]
+[ext_resource type="Texture2D" uid="uid://c1vyi5h35ki3h" path="res://sprites/Ghoul/Mutant walk right.png" id="1_owq46"]
+[ext_resource type="Texture2D" uid="uid://bi8oxigd1bjqh" path="res://sprites/Ghoul/mutant attack wall right.png" id="1_wqcwe"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_enemy"]
+radius = 4.0
+height = 12.0
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_sb13e"]
+atlas = ExtResource("1_wqcwe")
+region = Rect2(0, 0, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3udgd"]
+atlas = ExtResource("1_wqcwe")
+region = Rect2(24, 0, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vabdn"]
+atlas = ExtResource("1_wqcwe")
+region = Rect2(48, 0, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_nrfwl"]
+atlas = ExtResource("1_wqcwe")
+region = Rect2(72, 0, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wqcwe"]
+atlas = ExtResource("1_owq46")
+region = Rect2(0, 0, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5lf1o"]
+atlas = ExtResource("1_owq46")
+region = Rect2(24, 0, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_msovg"]
+atlas = ExtResource("1_owq46")
+region = Rect2(48, 0, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_twyc1"]
+atlas = ExtResource("1_owq46")
+region = Rect2(72, 0, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_w4yt1"]
+atlas = ExtResource("1_owq46")
+region = Rect2(96, 0, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ipr6v"]
+atlas = ExtResource("1_owq46")
+region = Rect2(120, 0, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_gj3y3"]
+atlas = ExtResource("1_owq46")
+region = Rect2(144, 0, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_56i32"]
+atlas = ExtResource("1_owq46")
+region = Rect2(168, 0, 24, 24)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_sb13e"]
+animations = [{
+"frames": [{
+"duration": 4.0,
+"texture": SubResource("AtlasTexture_sb13e")
+}, {
+"duration": 4.0,
+"texture": SubResource("AtlasTexture_3udgd")
+}, {
+"duration": 1.6,
+"texture": SubResource("AtlasTexture_vabdn")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_nrfwl")
+}],
+"loop": false,
+"name": &"attack",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_wqcwe")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5lf1o")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_msovg")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_twyc1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_w4yt1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ipr6v")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_gj3y3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_56i32")
+}],
+"loop": true,
+"name": &"walk",
+"speed": 5.0
+}]
+
+[node name="Enemy" type="CharacterBody2D" unique_id=1791868684]
+collision_layer = 4
+motion_mode = 1
+script = ExtResource("1_enemy")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=785250466]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=205045334]
+position = Vector2(-4.665, 5.04)
+shape = SubResource("CapsuleShape2D_enemy")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1565233092]
+sprite_frames = SubResource("SpriteFrames_sb13e")
+animation = &"walk"
+speed_scale = 1.5

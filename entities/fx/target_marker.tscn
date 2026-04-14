@@ -1,0 +1,7 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" uid="uid://dovv8nocaxhyr" path="res://entities/fx/target_marker.gd" id="1_marker"]
+
+[node name="TargetMarker" type="Node2D"]
+z_index = 100
+script = ExtResource("1_marker")
