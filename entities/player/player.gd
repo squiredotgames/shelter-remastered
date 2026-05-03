@@ -24,6 +24,7 @@ var _stuck_time_seconds: float = 0.0
 
 
 func _ready() -> void:
+	add_to_group("player")
 	target = global_position
 
 
