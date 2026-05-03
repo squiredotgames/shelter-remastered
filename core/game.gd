@@ -8,6 +8,7 @@ var _current_level: Node = null
 var _player: Player = null
 
 func _ready() -> void:
+	AudioManager.start_game_music()
 	load_level("level_01")
 
 

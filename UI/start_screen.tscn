@@ -1,0 +1,58 @@
+[gd_scene format=3 uid="uid://ci1d0tso88ajf"]
+
+[ext_resource type="Script" uid="uid://dw2a5325kf7m7" path="res://UI/start_screen.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://dcnf41rlmrhvj" path="res://UI/Titulo Shelter.png" id="2_title"]
+[ext_resource type="Texture2D" uid="uid://cclydgah4oetc" path="res://UI/playbutton.png" id="3_play"]
+
+[node name="StartScreen" type="Control" unique_id=65767365]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Background" type="ColorRect" parent="." unique_id=743163312]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.5, 0.5, 0.5, 1)
+
+[node name="Title" type="TextureRect" parent="." unique_id=1654096964]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -111.0
+offset_top = -40.0
+offset_right = 113.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_title")
+expand_mode = 1
+
+[node name="PlayButton" type="TextureButton" parent="." unique_id=1017930013]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -36.0
+offset_top = 40.0
+offset_right = 36.0
+offset_bottom = 76.0
+grow_horizontal = 2
+grow_vertical = 2
+texture_normal = ExtResource("3_play")
+ignore_texture_size = true
+stretch_mode = 0
+
+[connection signal="pressed" from="PlayButton" to="." method="_on_play_button_pressed"]

@@ -1,0 +1,14 @@
+[gd_scene format=3 uid="uid://b7ts1tnxnsht1"]
+
+[ext_resource type="Script" path="res://core/scene_transition.gd" id="1_script"]
+
+[node name="SceneTransition" type="CanvasLayer"]
+layer = 128
+script = ExtResource("1_script")
+
+[node name="Overlay" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0)
