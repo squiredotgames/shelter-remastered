@@ -4,6 +4,8 @@
 [ext_resource type="PackedScene" uid="uid://640o6fvr61a" path="res://entities/props/rock.tscn" id="2_mckh2"]
 [ext_resource type="PackedScene" uid="uid://bqj8m0wallt0p" path="res://entities/walls/wall_top.tscn" id="4_5dxk1"]
 [ext_resource type="PackedScene" uid="uid://bqj8m0wallr1g" path="res://entities/walls/wall_right.tscn" id="5_kjd3d"]
+[ext_resource type="Texture2D" uid="uid://v8nso7m7anvg" path="res://sprites/Decorations/planta en maceta.png" id="5_xw3ee"]
+[ext_resource type="Texture2D" uid="uid://dj8om57lcyfjq" path="res://sprites/Decorations/sarten y oso.png" id="6_l0eo6"]
 [ext_resource type="PackedScene" uid="uid://bqj8m0wallb0t" path="res://entities/walls/wall_bottom.tscn" id="6_qdeet"]
 [ext_resource type="PackedScene" uid="uid://bqj8m0walll3f" path="res://entities/walls/wall_left.tscn" id="7_xw3ee"]
 [ext_resource type="PackedScene" uid="uid://bqj8m0wcrnbl" path="res://entities/walls/wall_corner_bl.tscn" id="7_y72ps"]
@@ -55,7 +57,7 @@ metadata/_edit_lock_ = true
 [node name="Entities" type="Node2D" parent="." unique_id=1291062864]
 y_sort_enabled = true
 
-[node name="Decorations" type="Node2D" parent="Entities"]
+[node name="Decorations" type="Node2D" parent="Entities" unique_id=175908949]
 y_sort_enabled = true
 
 [node name="Rock" parent="Entities/Decorations" unique_id=1610345059 instance=ExtResource("2_mckh2")]
@@ -82,12 +84,26 @@ position = Vector2(-202, 202)
 [node name="Puertayescalera" type="Node2D" parent="Entities/Decorations" unique_id=1612046101]
 position = Vector2(184, -152)
 script = ExtResource("12_depth")
-max_north_track = 800.935
 
 [node name="Sprite2D" type="Sprite2D" parent="Entities/Decorations/Puertayescalera" unique_id=1612046102]
 texture = ExtResource("11_kjd3d")
 
-[node name="Walls" type="Node2D" parent="Entities"]
+[node name="PlantaEnMaceta" type="Sprite2D" parent="Entities/Decorations" unique_id=2024321206]
+position = Vector2(32, -56)
+texture = ExtResource("5_xw3ee")
+
+[node name="PlantaEnMaceta2" type="Sprite2D" parent="Entities/Decorations" unique_id=362203497]
+position = Vector2(192, -112)
+texture = ExtResource("5_xw3ee")
+
+[node name="SartenYOso" type="Node2D" parent="Entities/Decorations" unique_id=843096823]
+position = Vector2(136, -72)
+script = ExtResource("12_depth")
+
+[node name="Sprite2D" type="Sprite2D" parent="Entities/Decorations/SartenYOso" unique_id=843096824]
+texture = ExtResource("6_l0eo6")
+
+[node name="Walls" type="Node2D" parent="Entities" unique_id=1489227517]
 y_sort_enabled = true
 
 [node name="WallLeft" parent="Entities/Walls" unique_id=1160830298 instance=ExtResource("7_xw3ee")]
