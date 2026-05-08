@@ -78,6 +78,20 @@ func is_destroyed() -> bool:
 	return _health <= 0
 
 
+## Alpha applied to the wall sprite while it is set passable (door open look).
+const PASSABLE_SPRITE_ALPHA: float = 0.35
+
+## Toggle whether the wall is currently walk-through.
+## Used by door-style subclasses; no-op once the wall is destroyed
+## (a destroyed wall is permanently passable regardless of phase).
+func set_passable(passable: bool) -> void:
+	if is_destroyed():
+		return
+	_collision.set_deferred("disabled", passable)
+	if _sprite:
+		_sprite.modulate.a = PASSABLE_SPRITE_ALPHA if passable else 1.0
+
+
 func _is_corner() -> bool:
 	return orientation >= Orientation.CORNER_TL
 

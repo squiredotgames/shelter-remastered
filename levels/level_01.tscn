@@ -3,6 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://c1njfw8jn7pdb" path="res://sprites/Environment/Background/backgroundatlas.png" id="1_ty3hu"]
 [ext_resource type="PackedScene" uid="uid://640o6fvr61a" path="res://entities/props/rock.tscn" id="2_mckh2"]
 [ext_resource type="PackedScene" uid="uid://bqj8m0wallt0p" path="res://entities/walls/wall_top.tscn" id="4_5dxk1"]
+[ext_resource type="PackedScene" uid="uid://bqj8m0walldr0" path="res://entities/walls/wall_with_door.tscn" id="4_door"]
 [ext_resource type="PackedScene" uid="uid://bqj8m0wallr1g" path="res://entities/walls/wall_right.tscn" id="5_kjd3d"]
 [ext_resource type="Texture2D" uid="uid://v8nso7m7anvg" path="res://sprites/Decorations/planta en maceta.png" id="5_xw3ee"]
 [ext_resource type="Texture2D" uid="uid://dj8om57lcyfjq" path="res://sprites/Decorations/sarten y oso.png" id="6_l0eo6"]
@@ -124,7 +125,7 @@ position = Vector2(88, -168)
 [node name="WallTop3" parent="Entities/Walls" unique_id=300167453 instance=ExtResource("4_5dxk1")]
 position = Vector2(136, -168)
 
-[node name="WallTop4" parent="Entities/Walls" unique_id=1081166254 instance=ExtResource("4_5dxk1")]
+[node name="WallTopWithDoor" parent="Entities/Walls" unique_id=1081166254 instance=ExtResource("4_door")]
 position = Vector2(184, -168)
 
 [node name="WallRight" parent="Entities/Walls" unique_id=1244411892 instance=ExtResource("5_kjd3d")]
