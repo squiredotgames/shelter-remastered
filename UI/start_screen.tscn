@@ -4,6 +4,14 @@
 [ext_resource type="Texture2D" uid="uid://dcnf41rlmrhvj" path="res://UI/Titulo Shelter.png" id="2_title"]
 [ext_resource type="Texture2D" uid="uid://cclydgah4oetc" path="res://UI/playbutton.png" id="3_play"]
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_play_normal"]
+atlas = ExtResource("3_play")
+region = Rect2(0, 0, 18, 18)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_play_pressed"]
+atlas = ExtResource("3_play")
+region = Rect2(18, 0, 18, 18)
+
 [node name="StartScreen" type="Control" unique_id=65767365]
 layout_mode = 3
 anchors_preset = 15
@@ -51,7 +59,9 @@ offset_right = 36.0
 offset_bottom = 76.0
 grow_horizontal = 2
 grow_vertical = 2
-texture_normal = ExtResource("3_play")
+toggle_mode = true
+texture_normal = SubResource("AtlasTexture_play_normal")
+texture_pressed = SubResource("AtlasTexture_play_pressed")
 ignore_texture_size = true
 stretch_mode = 0
 
