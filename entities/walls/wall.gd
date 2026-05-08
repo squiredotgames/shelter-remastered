@@ -48,6 +48,7 @@ var _tier: int = 0
 
 
 func _ready() -> void:
+	add_to_group("walls")
 	_health = max_health
 	_refresh_texture()
 

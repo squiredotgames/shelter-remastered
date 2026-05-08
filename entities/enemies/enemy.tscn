@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://cw5ntdtophw0"]
 
-[ext_resource type="Script" path="res://entities/enemies/enemy.gd" id="1_enemy"]
+[ext_resource type="Script" uid="uid://ok2f3ugchabl" path="res://entities/enemies/enemy.gd" id="0_enemy"]
 [ext_resource type="Texture2D" uid="uid://c1vyi5h35ki3h" path="res://sprites/Ghoul/Mutant walk right.png" id="1_owq46"]
 [ext_resource type="Texture2D" uid="uid://bi8oxigd1bjqh" path="res://sprites/Ghoul/mutant attack wall right.png" id="1_wqcwe"]
 
@@ -107,8 +107,9 @@ animations = [{
 
 [node name="Enemy" type="CharacterBody2D" unique_id=1791868684]
 collision_layer = 4
+collision_mask = 1
 motion_mode = 1
-script = ExtResource("1_enemy")
+script = ExtResource("0_enemy")
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=785250466]
 
@@ -120,3 +121,8 @@ shape = SubResource("CapsuleShape2D_enemy")
 sprite_frames = SubResource("SpriteFrames_sb13e")
 animation = &"walk"
 speed_scale = 1.5
+
+[node name="NavigationAgent2D" type="NavigationAgent2D" parent="." unique_id=2002113301]
+path_desired_distance = 4.0
+target_desired_distance = 4.0
+avoidance_enabled = false

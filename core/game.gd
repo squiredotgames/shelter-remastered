@@ -3,6 +3,7 @@ class_name Game
 
 const LEVELS_PATH: String = "res://levels/"
 const PLAYER_SCENE: PackedScene = preload("res://entities/player/player.tscn")
+const MUTANT_SPAWNER_SCENE: PackedScene = preload("res://entities/enemies/mutant_spawner.tscn")
 
 const TINT_FADE_SECONDS: float = 1.5
 const DAY_TINT: Color = Color(0, 0, 0, 0)
@@ -11,6 +12,7 @@ const NIGHT_TINT: Color = Color(0.05, 0.05, 0.15, 0.55)
 var _current_level: Node = null
 var _player: Player = null
 var _tint_tween: Tween = null
+var _mutant_spawner: Node = null
 
 @onready var _tint: ColorRect = $TintOverlay/Rect
 
@@ -74,20 +76,27 @@ func _remove_player_from_level() -> void:
 		_player.get_parent().remove_child(_player)
 
 
-func _on_phase_changed(phase: int, day_index: int) -> void:
+func _on_phase_changed(phase: int, _day_index: int) -> void:
 	var night: bool = phase == GameState.Phase.NIGHT
 	_fade_tint(NIGHT_TINT if night else DAY_TINT)
 	if night:
-		_spawn_wave_for_night(day_index)
+		_start_mutant_spawner()
+	else:
+		_stop_mutant_spawner()
 
 
-## Stub: replaced by the real MutantSpawner in step 5 of IMPROVEMENTS.md.
-## Auto-clears after a short delay so the 4-night loop runs end-to-end
-## before any enemy code exists.
-func _spawn_wave_for_night(day_index: int) -> void:
-	var seconds: float = 3.0 + float(day_index)
-	var timer: SceneTreeTimer = get_tree().create_timer(seconds)
-	timer.timeout.connect(GameState.notify_wave_cleared)
+func _start_mutant_spawner() -> void:
+	if _current_level == null:
+		return
+	_stop_mutant_spawner()
+	_mutant_spawner = MUTANT_SPAWNER_SCENE.instantiate()
+	_current_level.add_child(_mutant_spawner)
+
+
+func _stop_mutant_spawner() -> void:
+	if _mutant_spawner and is_instance_valid(_mutant_spawner):
+		_mutant_spawner.queue_free()
+	_mutant_spawner = null
 
 
 func _fade_tint(target: Color) -> void:

@@ -5,10 +5,10 @@
 [node name="Game" type="Node2D" unique_id=1944592989]
 script = ExtResource("1_game")
 
-[node name="TintOverlay" type="CanvasLayer" parent="."]
+[node name="TintOverlay" type="CanvasLayer" parent="." unique_id=1711167055]
 layer = 10
 
-[node name="Rect" type="ColorRect" parent="TintOverlay"]
+[node name="Rect" type="ColorRect" parent="TintOverlay" unique_id=1041707817]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
