@@ -126,3 +126,6 @@ speed_scale = 1.5
 path_desired_distance = 4.0
 target_desired_distance = 4.0
 avoidance_enabled = false
+radius = 6.0
+neighbor_distance = 24.0
+max_neighbors = 6

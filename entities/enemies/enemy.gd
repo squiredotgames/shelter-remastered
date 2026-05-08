@@ -8,14 +8,18 @@ class_name Enemy
 ## Wall picking is constrained to the side of the shelter the enemy spawned on
 ## (north spawns target north walls, etc.) and prefers existing breaches on that
 ## side, picking the one closest to the player. Re-evaluated whenever any wall
-## on this enemy's side is destroyed.
+## is destroyed.
+##
+## To prevent stacking, intact walls have a small attacker capacity (Wall.ATTACKER_CAPACITY)
+## and assign each claimant a slot offset along the wall's tangent. If every wall on
+## this enemy's side is full, we fall back to the closest claimable wall on any side.
 
 const WALK_ANIMATION: StringName = &"walk"
 const ATTACK_ANIMATION: StringName = &"attack"
 const FLIP_THRESHOLD: float = 0.01
 
 @export var speed: float = 60.0
-## How close (px) to the chosen wall before we count as "arrived".
+## How close (px) to the chosen slot before we count as "arrived".
 @export var arrival_distance: float = 12.0
 ## Time of near-zero progress before we re-pick a target wall.
 @export var stuck_timeout_seconds: float = 1.5
@@ -23,6 +27,9 @@ const FLIP_THRESHOLD: float = 0.01
 
 var _state: int = State.APPROACH
 var _target_wall: Wall = null
+## True when `_target_wall` is a destroyed wall we're walking through, so we use
+## its center instead of a (non-existent) attacker slot.
+var _target_is_breach: bool = false
 var _spawn_side: int = Wall.Orientation.TOP
 var _stuck_time: float = 0.0
 
@@ -41,7 +48,13 @@ func _ready() -> void:
 	_play_animation(WALK_ANIMATION)
 
 
+func _exit_tree() -> void:
+	_release_current_claim()
+
+
 func _physics_process(delta: float) -> void:
+	# Keep local crowd avoidance active only while chasing inside the shelter.
+	_nav_agent.avoidance_enabled = _state == State.INSIDE
 	match _state:
 		State.APPROACH:
 			_process_approach(delta)
@@ -57,11 +70,13 @@ func _process_approach(delta: float) -> void:
 		_retarget()
 		return
 
-	var to_target: Vector2 = _target_wall.global_position - global_position
+	var target_pos: Vector2 = _current_target_position()
+	var to_target: Vector2 = target_pos - global_position
 	var distance: float = to_target.length()
 
 	if distance <= arrival_distance:
 		if _target_wall.is_destroyed():
+			_release_current_claim()
 			_state = State.INSIDE
 		else:
 			_state = State.IDLE_AT_WALL
@@ -106,42 +121,94 @@ func _process_inside() -> void:
 	_update_sprite_facing(direction)
 
 
+func _current_target_position() -> Vector2:
+	if not is_instance_valid(_target_wall):
+		return global_position
+	if _target_is_breach:
+		return _target_wall.global_position
+	return _target_wall.slot_position_for(self)
+
+
 func _retarget() -> void:
-	var candidates: Array[Wall] = _walls_on_my_side()
-	if candidates.is_empty():
-		_target_wall = null
-		_state = State.INSIDE
-		return
+	_release_current_claim()
 
-	var breaches: Array[Wall] = candidates.filter(func(w: Wall) -> bool: return w.is_destroyed())
-	var pool: Array[Wall] = breaches if not breaches.is_empty() else candidates.filter(
-		func(w: Wall) -> bool: return not w.is_destroyed()
-	)
-	if pool.is_empty():
-		_target_wall = null
-		_state = State.INSIDE
-		return
-
+	var same_side: Array[Wall] = _walls_on_my_side()
 	var player_pos: Vector2 = _get_player_position()
-	pool.sort_custom(func(a: Wall, b: Wall) -> bool:
-		return a.global_position.distance_squared_to(player_pos) \
-			< b.global_position.distance_squared_to(player_pos))
 
-	_target_wall = pool[0]
-	_state = State.APPROACH
-	_play_animation(WALK_ANIMATION)
+	# 1. Prefer breaches on my side (walk through them, no claim needed).
+	var breaches: Array[Wall] = same_side.filter(
+		func(w: Wall) -> bool: return w.is_destroyed() and not w._is_corner()
+	)
+	if not breaches.is_empty():
+		_target_wall = _closest_to(breaches, player_pos)
+		_target_is_breach = true
+		_state = State.APPROACH
+		_play_animation(WALK_ANIMATION)
+		return
+
+	# 2. Claimable wall on my side, closest to player.
+	var same_side_open: Array[Wall] = same_side.filter(
+		func(w: Wall) -> bool: return w.can_be_claimed()
+	)
+	if not same_side_open.is_empty():
+		var w: Wall = _closest_to(same_side_open, player_pos)
+		w.claim(self)
+		_target_wall = w
+		_target_is_breach = false
+		_state = State.APPROACH
+		_play_animation(WALK_ANIMATION)
+		return
+
+	# 3. Surplus: any claimable wall on any side, closest to player.
+	var any_open: Array[Wall] = _all_walls().filter(
+		func(w: Wall) -> bool: return w.can_be_claimed()
+	)
+	if not any_open.is_empty():
+		var w: Wall = _closest_to(any_open, player_pos)
+		w.claim(self)
+		_target_wall = w
+		_target_is_breach = false
+		_state = State.APPROACH
+		_play_animation(WALK_ANIMATION)
+		return
+
+	# 4. Nothing to attack — push toward the player directly.
+	_target_wall = null
+	_target_is_breach = false
+	_state = State.INSIDE
+
+
+func _release_current_claim() -> void:
+	if is_instance_valid(_target_wall) and not _target_is_breach:
+		_target_wall.release(self)
+
+
+func _all_walls() -> Array[Wall]:
+	var result: Array[Wall] = []
+	for node: Node in get_tree().get_nodes_in_group("walls"):
+		var wall: Wall = node as Wall
+		if wall != null:
+			result.append(wall)
+	return result
 
 
 func _walls_on_my_side() -> Array[Wall]:
 	var result: Array[Wall] = []
-	for node: Node in get_tree().get_nodes_in_group("walls"):
-		var wall: Wall = node as Wall
-		if wall == null:
-			continue
-		if wall.orientation != _spawn_side:
-			continue
-		result.append(wall)
+	for wall: Wall in _all_walls():
+		if wall.orientation == _spawn_side:
+			result.append(wall)
 	return result
+
+
+func _closest_to(walls: Array[Wall], pos: Vector2) -> Wall:
+	var best: Wall = walls[0]
+	var best_d: float = best.global_position.distance_squared_to(pos)
+	for i: int in range(1, walls.size()):
+		var d: float = walls[i].global_position.distance_squared_to(pos)
+		if d < best_d:
+			best = walls[i]
+			best_d = d
+	return best
 
 
 func _detect_spawn_side() -> int:
@@ -159,16 +226,13 @@ func _detect_spawn_side() -> int:
 
 
 func _connect_wall_signals() -> void:
-	for node: Node in get_tree().get_nodes_in_group("walls"):
-		var wall: Wall = node as Wall
-		if wall == null:
-			continue
-		if wall.orientation != _spawn_side:
-			continue
-		wall.wall_destroyed.connect(_on_wall_destroyed_on_my_side)
+	# Listen to ALL walls so we can react to breaches anywhere (surplus targets,
+	# preferred-side breaches opening mid-approach, current target dying, etc.).
+	for wall: Wall in _all_walls():
+		wall.wall_destroyed.connect(_on_any_wall_destroyed)
 
 
-func _on_wall_destroyed_on_my_side() -> void:
+func _on_any_wall_destroyed() -> void:
 	if _state == State.APPROACH or _state == State.IDLE_AT_WALL:
 		_retarget()
 

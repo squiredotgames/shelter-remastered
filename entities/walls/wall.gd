@@ -40,8 +40,15 @@ signal wall_destroyed
 @export var orientation := Orientation.TOP
 @export var max_health: int = 100
 
+## Max enemies that can claim attack slots on this wall at once.
+## Walls are 48px along their tangent; capacity 2 places attackers at ±12.
+const ATTACKER_CAPACITY: int = 2
+## Distance (px) between adjacent attacker slots along the wall's tangent.
+const ATTACKER_SLOT_SPREAD: float = 24.0
+
 var _health: int
 var _tier: int = 0
+var _attackers: Array[Node] = []
 
 @onready var _sprite: Sprite2D = $Sprite2D
 @onready var _collision: CollisionShape2D = $CollisionShape2D
@@ -77,6 +84,58 @@ func fully_repair() -> void:
 
 func is_destroyed() -> bool:
 	return _health <= 0
+
+
+## True if an attacker slot is available (not corner, not destroyed, under capacity).
+func can_be_claimed() -> bool:
+	if _is_corner() or is_destroyed():
+		return false
+	_prune_stale_attackers()
+	return _attackers.size() < ATTACKER_CAPACITY
+
+
+## Reserve an attacker slot. Idempotent if `enemy` already holds one.
+## Returns false if the wall is full / unclaimable.
+func claim(enemy: Node) -> bool:
+	if not can_be_claimed():
+		return _attackers.has(enemy)
+	if not _attackers.has(enemy):
+		_attackers.append(enemy)
+	return true
+
+
+func release(enemy: Node) -> void:
+	_attackers.erase(enemy)
+
+
+## World position the given attacker should walk to. Slots are spread along the
+## wall's tangent based on the attacker's index in `_attackers` so multiple
+## enemies on the same wall fan out instead of stacking. Falls back to the
+## wall's center if `enemy` hasn't claimed.
+func slot_position_for(enemy: Node) -> Vector2:
+	_prune_stale_attackers()
+	var idx: int = _attackers.find(enemy)
+	if idx == -1:
+		return global_position
+	var count: int = _attackers.size()
+	var offset_steps: float = float(idx) - float(count - 1) * 0.5
+	return global_position + _tangent_axis() * (offset_steps * ATTACKER_SLOT_SPREAD)
+
+
+func _tangent_axis() -> Vector2:
+	match orientation:
+		Orientation.TOP, Orientation.BOTTOM:
+			return Vector2(1.0, 0.0)
+		_:
+			return Vector2(0.0, 1.0)
+
+
+func _prune_stale_attackers() -> void:
+	var i: int = _attackers.size() - 1
+	while i >= 0:
+		if not is_instance_valid(_attackers[i]):
+			_attackers.remove_at(i)
+		i -= 1
 
 
 ## Alpha applied to the wall sprite while it is set passable (door open look).
