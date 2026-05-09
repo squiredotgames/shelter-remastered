@@ -75,3 +75,79 @@ stretch_mode = 5
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
 text = "0"
+
+[node name="HotbarRow" type="HBoxContainer" parent="HUDCanvas/HudRoot" unique_id=1446156660]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -22.0
+offset_bottom = -2.0
+grow_vertical = 0
+theme_override_constants/separation = 3
+alignment = 1
+
+[node name="Slot1" type="Panel" parent="HUDCanvas/HudRoot/HotbarRow" unique_id=2013656513]
+custom_minimum_size = Vector2(48, 18)
+layout_mode = 2
+
+[node name="Label" type="Label" parent="HUDCanvas/HudRoot/HotbarRow/Slot1" unique_id=929140476]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 8
+text = "1 Move"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Slot2" type="Panel" parent="HUDCanvas/HudRoot/HotbarRow" unique_id=10809582]
+custom_minimum_size = Vector2(48, 18)
+layout_mode = 2
+
+[node name="Label" type="Label" parent="HUDCanvas/HudRoot/HotbarRow/Slot2" unique_id=2113080986]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 8
+text = "2 Trap"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Slot3" type="Panel" parent="HUDCanvas/HudRoot/HotbarRow" unique_id=1065527494]
+custom_minimum_size = Vector2(48, 18)
+layout_mode = 2
+
+[node name="Label" type="Label" parent="HUDCanvas/HudRoot/HotbarRow/Slot3" unique_id=1727939041]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 8
+text = "3 E.Trap"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Slot4" type="Panel" parent="HUDCanvas/HudRoot/HotbarRow" unique_id=2031230946]
+custom_minimum_size = Vector2(48, 18)
+layout_mode = 2
+
+[node name="Label" type="Label" parent="HUDCanvas/HudRoot/HotbarRow/Slot4" unique_id=1545593189]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 8
+text = "4 Molotov"
+horizontal_alignment = 1
+vertical_alignment = 1

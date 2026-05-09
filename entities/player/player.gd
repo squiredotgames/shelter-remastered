@@ -1,6 +1,8 @@
 extends CharacterBody2D
 class_name Player
 
+enum Mode { MOVE_REPAIR, TRAP_NORMAL, TRAP_ELECTRIC, MOLOTOV }
+
 const WALK_ANIMATION: StringName = &"walk"
 const IDLE_ANIMATION: StringName = &"idle"
 const CLICK_ACTION: StringName = &"click"
@@ -21,6 +23,11 @@ const _FOOTSTEP_STREAMS: Array[AudioStream] = [
 	preload("res://audio/footsteps/Footstep Concrete 10.wav"),
 ]
 
+## How much health a single repair action restores.
+const REPAIR_AMOUNT: int = 25
+## Radius within which the player can repair a wall they are walking toward.
+const REPAIR_REACH: float = 40.0
+
 @export var speed: float = 400.0
 @export var stop_distance: float = 10.0
 ## Stop trying to reach the click if we barely move for this long (e.g. blocked by a rock).
@@ -31,9 +38,13 @@ const _FOOTSTEP_STREAMS: Array[AudioStream] = [
 @export var footstep_interval_seconds: float = 0.38
 @export var footstep_volume_db: float = 8.0
 
+signal mode_changed(mode: Mode)
+
+var active_mode: Mode = Mode.MOVE_REPAIR
 var target: Vector2
 
 var _destination_marker: Node2D = null
+var _pending_repair: Wall = null
 var _stuck_time_seconds: float = 0.0
 var _footstep_phase_seconds: float = 0.0
 ## False until the first real movement after idle/stuck/new click; then interval cadence.
@@ -49,6 +60,7 @@ func _ready() -> void:
 
 func reset_target() -> void:
 	target = global_position
+	_pending_repair = null
 	_stuck_time_seconds = 0.0
 	_footstep_phase_seconds = 0.0
 	_footstep_in_walk_cadence = false
@@ -56,14 +68,37 @@ func reset_target() -> void:
 
 
 func _input(event: InputEvent) -> void:
+	if event.is_action_pressed("slot_1"):
+		_set_mode(Mode.MOVE_REPAIR)
+		return
+	if event.is_action_pressed("slot_2"):
+		_set_mode(Mode.TRAP_NORMAL)
+		return
+	if event.is_action_pressed("slot_3"):
+		_set_mode(Mode.TRAP_ELECTRIC)
+		return
+	if event.is_action_pressed("slot_4"):
+		_set_mode(Mode.MOLOTOV)
+		return
+	if event.is_action_pressed("cancel_action"):
+		_cancel_to_move_repair()
+		return
 	if event.is_action_pressed(CLICK_ACTION):
-		_stuck_time_seconds = 0.0
-		_footstep_in_walk_cadence = false
-		target = get_global_mouse_position()
-		_show_destination_marker_at(target)
+		_handle_click()
 
 
 func _physics_process(delta: float) -> void:
+	# Reached repair target — apply repair and stop.
+	if _pending_repair != null:
+		if not is_instance_valid(_pending_repair):
+			_pending_repair = null
+		elif global_position.distance_to(_pending_repair.global_position) <= REPAIR_REACH:
+			if not _pending_repair.is_destroyed():
+				_pending_repair.repair(REPAIR_AMOUNT)
+			_pending_repair = null
+			_abort_move_to_target()
+			return
+
 	if global_position.distance_to(target) <= stop_distance:
 		velocity = Vector2.ZERO
 		_stuck_time_seconds = 0.0
@@ -83,6 +118,7 @@ func _physics_process(delta: float) -> void:
 		_stuck_time_seconds += delta
 		_footstep_in_walk_cadence = false
 		if _stuck_time_seconds >= stuck_timeout_seconds:
+			_pending_repair = null
 			_abort_move_to_target()
 			return
 	else:
@@ -101,6 +137,83 @@ func _physics_process(delta: float) -> void:
 	_update_sprite_facing(direction)
 
 
+# ── Mode switching ────────────────────────────────────────────────────────────
+
+func _set_mode(mode: Mode) -> void:
+	if active_mode == mode:
+		return
+	active_mode = mode
+	mode_changed.emit(mode)
+
+
+func _cancel_to_move_repair() -> void:
+	_pending_repair = null
+	_abort_move_to_target()
+	_set_mode(Mode.MOVE_REPAIR)
+
+
+# ── Click routing ─────────────────────────────────────────────────────────────
+
+func _handle_click() -> void:
+	var mouse_pos: Vector2 = get_global_mouse_position()
+	match active_mode:
+		Mode.MOVE_REPAIR:
+			var wall := _wall_at(mouse_pos)
+			if wall:
+				_begin_repair(wall)
+			else:
+				_move_to(mouse_pos)
+		Mode.TRAP_NORMAL:
+			_place_trap(false)
+		Mode.TRAP_ELECTRIC:
+			_place_trap(true)
+		Mode.MOLOTOV:
+			_throw_molotov(mouse_pos)
+
+
+func _wall_at(world_pos: Vector2) -> Wall:
+	var space := get_world_2d().direct_space_state
+	var query := PhysicsPointQueryParameters2D.new()
+	query.position = world_pos
+	query.collision_mask = 1  # "world" layer
+	query.collide_with_bodies = true
+	var results := space.intersect_point(query, 4)
+	for r: Dictionary in results:
+		var body: Object = r.get("collider")
+		if body is Wall and not (body as Wall).is_destroyed():
+			return body as Wall
+	return null
+
+
+func _begin_repair(wall: Wall) -> void:
+	if GameState.phase != GameState.Phase.DAY:
+		return
+	_move_to(wall.global_position)
+	_pending_repair = wall
+
+
+func _move_to(world_pos: Vector2) -> void:
+	_pending_repair = null
+	_stuck_time_seconds = 0.0
+	_footstep_in_walk_cadence = false
+	target = world_pos
+	_show_destination_marker_at(target)
+
+
+func _place_trap(_electric: bool) -> void:
+	if GameState.phase != GameState.Phase.DAY:
+		return
+	# TODO: instantiate trap scene near player and place it.
+	pass
+
+
+func _throw_molotov(_world_pos: Vector2) -> void:
+	# TODO: instantiate molotov projectile and launch toward world_pos.
+	pass
+
+
+# ── Animation ─────────────────────────────────────────────────────────────────
+
 func _play_animation(animation_name: StringName) -> void:
 	if _animated_sprite.animation == animation_name:
 		return
@@ -112,6 +225,8 @@ func _update_sprite_facing(direction: Vector2) -> void:
 		return
 	_animated_sprite.flip_h = direction.x > 0.0
 
+
+# ── Destination marker ────────────────────────────────────────────────────────
 
 func _ensure_destination_marker() -> void:
 	if is_instance_valid(_destination_marker):
@@ -146,6 +261,8 @@ func _abort_move_to_target() -> void:
 	_hide_destination_marker()
 	_play_animation(IDLE_ANIMATION)
 
+
+# ── Audio ─────────────────────────────────────────────────────────────────────
 
 func _play_footstep() -> void:
 	var stream: AudioStream = _FOOTSTEP_STREAMS[randi_range(0, _FOOTSTEP_STREAMS.size() - 1)]

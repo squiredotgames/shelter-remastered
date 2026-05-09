@@ -15,6 +15,7 @@ var _tint_tween: Tween = null
 var _mutant_spawner: Node = null
 
 @onready var _tint: ColorRect = $TintOverlay/Rect
+@onready var _hud: Control = $HUDCanvas/HudRoot
 
 
 func _ready() -> void:
@@ -62,6 +63,10 @@ func _add_player_to_level() -> void:
 
 	if not _player:
 		_player = PLAYER_SCENE.instantiate() as Player
+		_player.mode_changed.connect(func(mode: Player.Mode) -> void:
+			if is_instance_valid(_hud):
+				_hud.call("set_active_mode", mode)
+		)
 
 	entities.add_child(_player)
 
