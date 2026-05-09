@@ -9,6 +9,8 @@ const CLICK_ACTION: StringName = &"click"
 const FLIP_THRESHOLD: float = 0.01
 
 const TARGET_MARKER_SCENE: PackedScene = preload("res://entities/fx/target_marker.tscn")
+const BEAR_TRAP_SCENE: PackedScene = preload("res://entities/weapons/bear_trap.tscn")
+const ELECTRIC_TRAP_SCENE: PackedScene = preload("res://entities/weapons/electric_trap.tscn")
 
 const _FOOTSTEP_STREAMS: Array[AudioStream] = [
 	preload("res://audio/footsteps/Footstep Concrete 01.wav"),
@@ -45,6 +47,11 @@ var target: Vector2
 
 var _destination_marker: Node2D = null
 var _pending_repair: Wall = null
+## Set when the player clicked to place a trap; spawned on arrival.
+var _pending_trap_electric: bool = false
+var _has_pending_trap: bool = false
+## Semi-transparent preview that follows the cursor while a trap mode is active.
+var _trap_ghost: Node2D = null
 var _stuck_time_seconds: float = 0.0
 var _footstep_phase_seconds: float = 0.0
 ## False until the first real movement after idle/stuck/new click; then interval cadence.
@@ -58,9 +65,20 @@ func _ready() -> void:
 	target = global_position
 
 
+func _exit_tree() -> void:
+	_hide_trap_ghost()
+
+
+func _process(_delta: float) -> void:
+	# Follow cursor freely before a destination is confirmed; freeze in place after.
+	if is_instance_valid(_trap_ghost) and not _has_pending_trap:
+		_trap_ghost.global_position = get_global_mouse_position()
+
+
 func reset_target() -> void:
 	target = global_position
 	_pending_repair = null
+	_has_pending_trap = false
 	_stuck_time_seconds = 0.0
 	_footstep_phase_seconds = 0.0
 	_footstep_in_walk_cadence = false
@@ -106,6 +124,10 @@ func _physics_process(delta: float) -> void:
 		_footstep_in_walk_cadence = false
 		_hide_destination_marker()
 		_play_animation(IDLE_ANIMATION)
+		# Reached trap destination — spawn the trap here and clear pending.
+		if _has_pending_trap:
+			_has_pending_trap = false
+			_spawn_trap(_pending_trap_electric, global_position)
 		return
 
 	var direction: Vector2 = global_position.direction_to(target)
@@ -119,6 +141,7 @@ func _physics_process(delta: float) -> void:
 		_footstep_in_walk_cadence = false
 		if _stuck_time_seconds >= stuck_timeout_seconds:
 			_pending_repair = null
+			_has_pending_trap = false
 			_abort_move_to_target()
 			return
 	else:
@@ -143,11 +166,20 @@ func _set_mode(mode: Mode) -> void:
 	if active_mode == mode:
 		return
 	active_mode = mode
+	_has_pending_trap = false
+	match mode:
+		Mode.TRAP_NORMAL:
+			_show_trap_ghost(false)
+		Mode.TRAP_ELECTRIC:
+			_show_trap_ghost(true)
+		_:
+			_hide_trap_ghost()
 	mode_changed.emit(mode)
 
 
 func _cancel_to_move_repair() -> void:
 	_pending_repair = null
+	_has_pending_trap = false
 	_abort_move_to_target()
 	_set_mode(Mode.MOVE_REPAIR)
 
@@ -164,9 +196,9 @@ func _handle_click() -> void:
 			else:
 				_move_to(mouse_pos)
 		Mode.TRAP_NORMAL:
-			_place_trap(false)
+			_begin_place_trap(false, mouse_pos)
 		Mode.TRAP_ELECTRIC:
-			_place_trap(true)
+			_begin_place_trap(true, mouse_pos)
 		Mode.MOLOTOV:
 			_throw_molotov(mouse_pos)
 
@@ -200,11 +232,45 @@ func _move_to(world_pos: Vector2) -> void:
 	_show_destination_marker_at(target)
 
 
-func _place_trap(_electric: bool) -> void:
+## Walk to world_pos; drop a trap when arriving.
+func _begin_place_trap(electric: bool, world_pos: Vector2) -> void:
 	if GameState.phase != GameState.Phase.DAY:
 		return
-	# TODO: instantiate trap scene near player and place it.
-	pass
+	_move_to(world_pos)
+	_pending_trap_electric = electric
+	_has_pending_trap = true
+
+
+func _spawn_trap(electric: bool, world_pos: Vector2) -> void:
+	var scene: PackedScene = ELECTRIC_TRAP_SCENE if electric else BEAR_TRAP_SCENE
+	var trap: Node2D = scene.instantiate() as Node2D
+	get_parent().add_child(trap)
+	trap.global_position = world_pos
+	# Respawn the ghost so it's ready to preview the next placement.
+	_show_trap_ghost(electric)
+
+
+# ── Trap ghost ────────────────────────────────────────────────────────────────
+
+func _show_trap_ghost(electric: bool) -> void:
+	_hide_trap_ghost()
+	var scene: PackedScene = ELECTRIC_TRAP_SCENE if electric else BEAR_TRAP_SCENE
+	_trap_ghost = scene.instantiate() as Node2D
+	_trap_ghost.modulate = Color(1.0, 1.0, 1.0, 0.5)
+	get_parent().add_child(_trap_ghost)
+	if _trap_ghost is Area2D:
+		(_trap_ghost as Area2D).monitoring = false
+		(_trap_ghost as Area2D).monitorable = false
+	for child: Node in _trap_ghost.get_children():
+		if child is CollisionShape2D:
+			(child as CollisionShape2D).disabled = true
+	_trap_ghost.global_position = get_global_mouse_position()
+
+
+func _hide_trap_ghost() -> void:
+	if is_instance_valid(_trap_ghost):
+		_trap_ghost.queue_free()
+	_trap_ghost = null
 
 
 func _throw_molotov(_world_pos: Vector2) -> void:

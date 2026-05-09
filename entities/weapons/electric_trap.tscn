@@ -1,0 +1,82 @@
+[gd_scene format=3 uid="uid://bosk6bsinyxy2"]
+
+[ext_resource type="Texture2D" uid="uid://c211m73fyn5jt" path="res://sprites/Traps/electric trap.png" id="1_0upk5"]
+[ext_resource type="Texture2D" uid="uid://gopg5ykhapmk" path="res://sprites/Traps/electric trap off.png" id="1_7fw4e"]
+[ext_resource type="Script" path="res://entities/weapons/trap.gd" id="2_trap"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_soly0"]
+size = Vector2(32, 28)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ct68w"]
+atlas = ExtResource("1_0upk5")
+region = Rect2(0, 0, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_diuks"]
+atlas = ExtResource("1_0upk5")
+region = Rect2(24, 0, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_a8krf"]
+atlas = ExtResource("1_0upk5")
+region = Rect2(48, 0, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6daws"]
+atlas = ExtResource("1_0upk5")
+region = Rect2(72, 0, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_e07e7"]
+atlas = ExtResource("1_0upk5")
+region = Rect2(96, 0, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_u683h"]
+atlas = ExtResource("1_0upk5")
+region = Rect2(120, 0, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0upk5"]
+atlas = ExtResource("1_7fw4e")
+region = Rect2(0, 0, 24, 24)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_ct68w"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ct68w")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_diuks")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_a8krf")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6daws")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_e07e7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_u683h")
+}],
+"loop": true,
+"name": &"default",
+"speed": 20.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0upk5")
+}],
+"loop": true,
+"name": &"off",
+"speed": 5.0
+}]
+
+[node name="ElectricTrap" type="Area2D" unique_id=410445465]
+script = ExtResource("2_trap")
+max_charges = 5
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=66244458]
+position = Vector2(0, 1)
+shape = SubResource("RectangleShape2D_soly0")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=673566191]
+sprite_frames = SubResource("SpriteFrames_ct68w")
+frame_progress = 0.8838569
