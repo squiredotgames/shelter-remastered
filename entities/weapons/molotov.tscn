@@ -1,0 +1,67 @@
+[gd_scene format=3 uid="uid://3mnnas2fwt1r"]
+
+[ext_resource type="Texture2D" uid="uid://bdxotkhp24a22" path="res://sprites/Weapons/Molotov.png" id="1_5k1t4"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_igfho"]
+atlas = ExtResource("1_5k1t4")
+region = Rect2(72, 0, 12, 12)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4r4bm"]
+atlas = ExtResource("1_5k1t4")
+region = Rect2(60, 0, 12, 12)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ifnxb"]
+atlas = ExtResource("1_5k1t4")
+region = Rect2(48, 0, 12, 12)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_iv0q8"]
+atlas = ExtResource("1_5k1t4")
+region = Rect2(36, 0, 12, 12)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_k4n8i"]
+atlas = ExtResource("1_5k1t4")
+region = Rect2(24, 0, 12, 12)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_lkpkc"]
+atlas = ExtResource("1_5k1t4")
+region = Rect2(12, 0, 12, 12)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2b7ar"]
+atlas = ExtResource("1_5k1t4")
+region = Rect2(0, 0, 12, 12)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_npvk3"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_igfho")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4r4bm")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ifnxb")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_iv0q8")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_k4n8i")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_lkpkc")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2b7ar")
+}],
+"loop": true,
+"name": &"default",
+"speed": 12.0
+}]
+
+[node name="Molotov" type="Node2D" unique_id=974055789]
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=509941599]
+sprite_frames = SubResource("SpriteFrames_npvk3")
+autoplay = "default"
+frame_progress = 0.8658625

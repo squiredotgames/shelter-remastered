@@ -16,6 +16,7 @@
 [ext_resource type="Texture2D" uid="uid://7hebgvec7gxd" path="res://sprites/Decorations/puertayescalera.png" id="11_kjd3d"]
 [ext_resource type="Script" uid="uid://ueoscqsmw8e7" path="res://entities/props/decoration_depth.gd" id="12_depth"]
 [ext_resource type="Script" uid="uid://bb3ift7hk41rm" path="res://levels/level_01.gd" id="13_level01"]
+[ext_resource type="PackedScene" uid="uid://3mnnas2fwt1r" path="res://entities/weapons/molotov.tscn" id="18_2t17w"]
 
 [sub_resource type="NavigationPolygon" id="NavigationPolygon_lvl"]
 vertices = PackedVector2Array(744, 389, -434, 389, -434, -389, 744, -389)
@@ -53,6 +54,7 @@ size = Vector2(40, 837)
 script = ExtResource("13_level01")
 
 [node name="NavigationRegion2D" type="NavigationRegion2D" parent="." unique_id=900000001]
+visible = false
 navigation_polygon = SubResource("NavigationPolygon_lvl")
 
 [node name="SpawnPoint" type="Marker2D" parent="." unique_id=116662590]
@@ -217,3 +219,6 @@ collision_mask = 3
 [node name="CollisionShape2D" type="CollisionShape2D" parent="WorldBounds/WestWall" unique_id=2010415521]
 position = Vector2(-445, 6.5)
 shape = SubResource("RectangleShape2D_mllcm")
+
+[node name="Molotov" parent="." unique_id=974055789 instance=ExtResource("18_2t17w")]
+position = Vector2(168, -72)

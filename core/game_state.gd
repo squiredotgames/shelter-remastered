@@ -8,6 +8,7 @@ enum Phase { DAY, NIGHT }
 
 signal phase_changed(phase: int, day_index: int)
 signal day_tick(time_left_seconds: float)
+signal night_tick(elapsed_seconds: float)
 signal run_won
 signal run_lost
 
@@ -18,6 +19,7 @@ var phase: int = Phase.DAY
 var day_index: int = 1
 
 var _day_time_left: float = 0.0
+var _night_elapsed: float = 0.0
 var _wave_active: bool = false
 var _run_active: bool = false
 
@@ -30,12 +32,16 @@ func start_run() -> void:
 
 
 func _process(delta: float) -> void:
-	if not _run_active or phase != Phase.DAY:
+	if not _run_active:
 		return
-	_day_time_left = maxf(0.0, _day_time_left - delta)
-	day_tick.emit(_day_time_left)
-	if _day_time_left <= 0.0:
-		_enter_night()
+	if phase == Phase.DAY:
+		_day_time_left = maxf(0.0, _day_time_left - delta)
+		day_tick.emit(_day_time_left)
+		if _day_time_left <= 0.0:
+			_enter_night()
+	elif phase == Phase.NIGHT:
+		_night_elapsed += delta
+		night_tick.emit(_night_elapsed)
 
 
 ## Called by the spawner when the night's wave hits zero mutants alive.
@@ -76,6 +82,10 @@ func get_day_time_left() -> float:
 	return _day_time_left
 
 
+func get_night_elapsed() -> float:
+	return _night_elapsed
+
+
 func _enter_day() -> void:
 	phase = Phase.DAY
 	_day_time_left = DAY_DURATION_SECONDS
@@ -84,5 +94,7 @@ func _enter_day() -> void:
 
 func _enter_night() -> void:
 	phase = Phase.NIGHT
+	_night_elapsed = 0.0
+	night_tick.emit(_night_elapsed)
 	_wave_active = true
 	phase_changed.emit(phase, day_index)
