@@ -41,6 +41,10 @@ const _SPAWN_SFX_PATHS: Array[String] = [
 @export var wall_attack_damage: int = 8
 ## Frame index in the `attack` AnimatedSprite2D animation that should apply damage.
 @export var attack_hit_frame: int = 1
+## Player damage dealt when the attack animation reaches `attack_hit_frame`.
+@export var player_attack_damage: int = 10
+## Distance where enemy stops pathing and starts attacking the player.
+@export var player_attack_range: float = 14.0
 
 var _state: int = State.APPROACH
 var _target_wall: Wall = null
@@ -56,7 +60,7 @@ var _spawn_sfx_streams: Array[AudioStream] = []
 @onready var _nav_agent: NavigationAgent2D = $NavigationAgent2D
 
 
-enum State { APPROACH, INSIDE, AT_WALL }
+enum State { APPROACH, INSIDE, AT_WALL, AT_PLAYER }
 
 
 func _ready() -> void:
@@ -85,6 +89,8 @@ func _physics_process(delta: float) -> void:
 		State.AT_WALL:
 			velocity = Vector2.ZERO
 			move_and_slide()
+		State.AT_PLAYER:
+			_process_at_player()
 
 
 func _process_approach(delta: float) -> void:
@@ -100,6 +106,7 @@ func _process_approach(delta: float) -> void:
 		if _target_wall.is_destroyed():
 			_release_current_claim()
 			_state = State.INSIDE
+			_play_animation(WALK_ANIMATION)
 		else:
 			_state = State.AT_WALL
 			_play_animation(ATTACK_ANIMATION)
@@ -129,6 +136,12 @@ func _process_inside() -> void:
 		velocity = Vector2.ZERO
 		move_and_slide()
 		return
+	if global_position.distance_to(player_node.global_position) <= player_attack_range:
+		_state = State.AT_PLAYER
+		velocity = Vector2.ZERO
+		move_and_slide()
+		_play_animation(ATTACK_ANIMATION)
+		return
 
 	_nav_agent.target_position = player_node.global_position
 	if _nav_agent.is_navigation_finished():
@@ -140,7 +153,27 @@ func _process_inside() -> void:
 	var direction: Vector2 = global_position.direction_to(next_pos)
 	velocity = direction * speed
 	move_and_slide()
+	_play_animation(WALK_ANIMATION)
 	_update_sprite_facing(direction)
+
+
+func _process_at_player() -> void:
+	var player_node: Node2D = _get_player()
+	if player_node == null:
+		_state = State.INSIDE
+		_play_animation(WALK_ANIMATION)
+		return
+	var to_player: Vector2 = player_node.global_position - global_position
+	var distance: float = to_player.length()
+	if distance > player_attack_range:
+		_state = State.INSIDE
+		_play_animation(WALK_ANIMATION)
+		return
+	velocity = Vector2.ZERO
+	move_and_slide()
+	_play_animation(ATTACK_ANIMATION)
+	if distance > 0.001:
+		_update_sprite_facing(to_player / distance)
 
 
 func _current_target_position() -> Vector2:
@@ -288,13 +321,14 @@ func _update_sprite_facing(direction: Vector2) -> void:
 func _on_animated_sprite_frame_changed() -> void:
 	if _animated_sprite == null:
 		return
-	if _state != State.AT_WALL:
-		return
 	if _animated_sprite.animation != ATTACK_ANIMATION:
 		return
 	if _animated_sprite.frame != attack_hit_frame:
 		return
-	_attack_wall()
+	if _state == State.AT_WALL:
+		_attack_wall()
+	elif _state == State.AT_PLAYER:
+		_attack_player()
 
 
 func _attack_wall() -> void:
@@ -306,6 +340,18 @@ func _attack_wall() -> void:
 		return
 	_play_attack_feedback()
 	_target_wall.take_damage(wall_attack_damage)
+
+
+func _attack_player() -> void:
+	var player_node: Node2D = _get_player()
+	if player_node == null:
+		return
+	if global_position.distance_to(player_node.global_position) > player_attack_range:
+		return
+	if not player_node.has_method("take_damage"):
+		return
+	_play_attack_feedback()
+	player_node.call("take_damage", player_attack_damage)
 
 
 func _play_attack_feedback() -> void:

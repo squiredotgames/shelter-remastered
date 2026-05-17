@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://dyjyln2haxv6x"
+path="res://.godot/imported/Male vocalization - restrained pain - grunting 3.mp3-d738862b056a1fc155e8b4a6f8478522.mp3str"
+
+[deps]
+
+source_file="res://audio/player/Male vocalization - restrained pain - grunting 3.mp3"
+dest_files=["res://.godot/imported/Male vocalization - restrained pain - grunting 3.mp3-d738862b056a1fc155e8b4a6f8478522.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

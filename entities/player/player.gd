@@ -24,11 +24,16 @@ const _FOOTSTEP_STREAMS: Array[AudioStream] = [
 	preload("res://audio/footsteps/Footstep Concrete 09.wav"),
 	preload("res://audio/footsteps/Footstep Concrete 10.wav"),
 ]
+const _HIT_VOCAL_PATHS: Array[String] = [
+	"res://audio/player/Male vocalization - restrained pain - grunting 3.mp3",
+	"res://audio/player/Male vocalization - restrained pain - grunting 5.mp3",
+]
 
 ## How much health a single repair action restores.
 const REPAIR_AMOUNT: int = 25
 ## Radius within which the player can repair a wall they are walking toward.
 const REPAIR_REACH: float = 40.0
+const DEAD_ANIMATION: StringName = &"dead"
 
 @export var speed: float = 400.0
 @export var stop_distance: float = 10.0
@@ -39,6 +44,8 @@ const REPAIR_REACH: float = 40.0
 ## Time between footstep sounds while walking (only when actually moving).
 @export var footstep_interval_seconds: float = 0.38
 @export var footstep_volume_db: float = 8.0
+@export var max_hp: int = 100
+@export var damage_cooldown_seconds: float = 0.6
 
 signal mode_changed(mode: Mode)
 
@@ -56,6 +63,10 @@ var _stuck_time_seconds: float = 0.0
 var _footstep_phase_seconds: float = 0.0
 ## False until the first real movement after idle/stuck/new click; then interval cadence.
 var _footstep_in_walk_cadence: bool = false
+var _hp: int = 100
+var _damage_cooldown_left: float = 0.0
+var _is_dead: bool = false
+var _hit_vocal_streams: Array[AudioStream] = []
 
 @onready var _animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 
@@ -63,6 +74,7 @@ var _footstep_in_walk_cadence: bool = false
 func _ready() -> void:
 	add_to_group("player")
 	target = global_position
+	_hp = max_hp
 
 
 func _exit_tree() -> void:
@@ -106,6 +118,13 @@ func _input(event: InputEvent) -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if _is_dead:
+		velocity = Vector2.ZERO
+		move_and_slide()
+		return
+	if _damage_cooldown_left > 0.0:
+		_damage_cooldown_left = maxf(0.0, _damage_cooldown_left - delta)
+
 	# Reached repair target — apply repair and stop.
 	if _pending_repair != null:
 		if not is_instance_valid(_pending_repair):
@@ -333,3 +352,30 @@ func _abort_move_to_target() -> void:
 func _play_footstep() -> void:
 	var stream: AudioStream = _FOOTSTEP_STREAMS[randi_range(0, _FOOTSTEP_STREAMS.size() - 1)]
 	AudioManager.play_sfx_2d(stream, global_position, footstep_volume_db)
+
+
+func _play_hit_vocalization() -> void:
+	if _hit_vocal_streams.is_empty():
+		for path: String in _HIT_VOCAL_PATHS:
+			var loaded_stream: AudioStream = load(path) as AudioStream
+			if loaded_stream != null:
+				_hit_vocal_streams.append(loaded_stream)
+	if _hit_vocal_streams.is_empty():
+		return
+	var stream: AudioStream = _hit_vocal_streams[randi_range(0, _hit_vocal_streams.size() - 1)]
+	AudioManager.play_sfx_2d(stream, global_position)
+
+
+func take_damage(amount: int) -> void:
+	if _is_dead or amount <= 0:
+		return
+	if _damage_cooldown_left > 0.0:
+		return
+	_damage_cooldown_left = damage_cooldown_seconds
+	_hp = maxi(0, _hp - amount)
+	_play_hit_vocalization()
+	if _hp <= 0:
+		_is_dead = true
+		velocity = Vector2.ZERO
+		_play_animation(DEAD_ANIMATION)
+		GameState.notify_player_died()
