@@ -32,6 +32,9 @@ const _TIER_PREFIX: Array[String] = [
 const _TIER_THRESH: Array[float] = [0.8, 0.6, 0.4, 0.2, 0.0]
 
 const _SPRITES := "res://sprites/Walls/"
+const _BREAK_SFX_PATH: String = "res://audio/walls/break.wav"
+const _BREAK_SFX_VOLUME_DB: float = 1.5
+const _HIT_SFX_VOLUME_DB: float = -2.0
 
 signal health_changed(current_health: int, max_health: int)
 signal wall_destroyed
@@ -45,10 +48,14 @@ signal wall_destroyed
 const ATTACKER_CAPACITY: int = 2
 ## Distance (px) between adjacent attacker slots along the wall's tangent.
 const ATTACKER_SLOT_SPREAD: float = 24.0
+## Push attacker slot targets to the outside wall face (center -> face = 8 px for 16 px thick walls).
+const ATTACKER_APPROACH_OFFSET: float = 8.0
 
 var _health: int
 var _tier: int = 0
 var _attackers: Array[Node] = []
+var _break_sfx_stream: AudioStream = null
+var _hit_sfx_stream: AudioStream = null
 
 @onready var _sprite: Sprite2D = $Sprite2D
 @onready var _collision: CollisionShape2D = $CollisionShape2D
@@ -63,6 +70,9 @@ func _ready() -> void:
 func take_damage(amount: int) -> void:
 	if _is_corner() or _health <= 0:
 		return
+	if _hit_sfx_stream == null:
+		_hit_sfx_stream = load(_BREAK_SFX_PATH) as AudioStream
+	AudioManager.play_sfx_2d(_hit_sfx_stream, global_position, _HIT_SFX_VOLUME_DB)
 	_set_health(_health - amount)
 
 
@@ -116,10 +126,14 @@ func slot_position_for(enemy: Node) -> Vector2:
 	_prune_stale_attackers()
 	var idx: int = _attackers.find(enemy)
 	if idx == -1:
-		return global_position
+		return global_position + _outward_axis() * ATTACKER_APPROACH_OFFSET
 	var count: int = _attackers.size()
 	var offset_steps: float = float(idx) - float(count - 1) * 0.5
-	return global_position + _tangent_axis() * (offset_steps * ATTACKER_SLOT_SPREAD)
+	return (
+		global_position
+		+ _tangent_axis() * (offset_steps * ATTACKER_SLOT_SPREAD)
+		+ _outward_axis() * ATTACKER_APPROACH_OFFSET
+	)
 
 
 func _tangent_axis() -> Vector2:
@@ -128,6 +142,20 @@ func _tangent_axis() -> Vector2:
 			return Vector2(1.0, 0.0)
 		_:
 			return Vector2(0.0, 1.0)
+
+
+func _outward_axis() -> Vector2:
+	match orientation:
+		Orientation.TOP:
+			return Vector2(0.0, -1.0)
+		Orientation.BOTTOM:
+			return Vector2(0.0, 1.0)
+		Orientation.LEFT:
+			return Vector2(-1.0, 0.0)
+		Orientation.RIGHT:
+			return Vector2(1.0, 0.0)
+		_:
+			return Vector2.ZERO
 
 
 func _prune_stale_attackers() -> void:
@@ -167,6 +195,9 @@ func _set_health(value: int) -> void:
 	_refresh_texture()
 	if _tier == 5:
 		_collision.set_deferred("disabled", true)
+		if _break_sfx_stream == null:
+			_break_sfx_stream = load(_BREAK_SFX_PATH) as AudioStream
+		AudioManager.play_sfx_2d(_break_sfx_stream, global_position, _BREAK_SFX_VOLUME_DB)
 		wall_destroyed.emit()
 
 

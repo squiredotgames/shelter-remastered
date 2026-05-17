@@ -17,6 +17,19 @@ class_name Enemy
 const WALK_ANIMATION: StringName = &"walk"
 const ATTACK_ANIMATION: StringName = &"attack"
 const FLIP_THRESHOLD: float = 0.01
+const ATTACK_SHAKE_STRENGTH: float = 2.0
+const ATTACK_SHAKE_DURATION_SECONDS: float = 0.07
+const ATTACK_SFX_VOLUME_DB: float = -2.0
+const ATTACK_SFX_CHANCE: float = 0.25
+const SPAWN_SFX_VOLUME_DB: float = -1.0
+const _ATTACK_SFX_PATHS: Array[String] = [
+	"res://audio/zombie/zombie attack 1.mp3",
+	"res://audio/zombie/zombie attack 2.mp3",
+]
+const _SPAWN_SFX_PATHS: Array[String] = [
+	"res://audio/zombie/zombie inicial.mp3",
+	"res://audio/zombie/zombie incial 2.mp3",
+]
 
 @export var speed: float = 60.0
 ## How close (px) to the chosen slot before we count as "arrived".
@@ -24,6 +37,10 @@ const FLIP_THRESHOLD: float = 0.01
 ## Time of near-zero progress before we re-pick a target wall.
 @export var stuck_timeout_seconds: float = 1.5
 @export var stuck_movement_epsilon_sq: float = 0.04
+## Wall damage dealt when the attack animation reaches `attack_hit_frame`.
+@export var wall_attack_damage: int = 8
+## Frame index in the `attack` AnimatedSprite2D animation that should apply damage.
+@export var attack_hit_frame: int = 1
 
 var _state: int = State.APPROACH
 var _target_wall: Wall = null
@@ -32,18 +49,23 @@ var _target_wall: Wall = null
 var _target_is_breach: bool = false
 var _spawn_side: int = Wall.Orientation.TOP
 var _stuck_time: float = 0.0
+var _attack_sfx_streams: Array[AudioStream] = []
+var _spawn_sfx_streams: Array[AudioStream] = []
 
 @onready var _animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var _nav_agent: NavigationAgent2D = $NavigationAgent2D
 
 
-enum State { APPROACH, INSIDE, IDLE_AT_WALL }
+enum State { APPROACH, INSIDE, AT_WALL }
 
 
 func _ready() -> void:
 	add_to_group("enemies")
 	_spawn_side = _detect_spawn_side()
 	_connect_wall_signals()
+	if _animated_sprite != null:
+		_animated_sprite.frame_changed.connect(_on_animated_sprite_frame_changed)
+	_play_spawn_sfx()
 	_retarget()
 	_play_animation(WALK_ANIMATION)
 
@@ -60,7 +82,7 @@ func _physics_process(delta: float) -> void:
 			_process_approach(delta)
 		State.INSIDE:
 			_process_inside()
-		State.IDLE_AT_WALL:
+		State.AT_WALL:
 			velocity = Vector2.ZERO
 			move_and_slide()
 
@@ -79,7 +101,7 @@ func _process_approach(delta: float) -> void:
 			_release_current_claim()
 			_state = State.INSIDE
 		else:
-			_state = State.IDLE_AT_WALL
+			_state = State.AT_WALL
 			_play_animation(ATTACK_ANIMATION)
 		velocity = Vector2.ZERO
 		move_and_slide()
@@ -233,7 +255,7 @@ func _connect_wall_signals() -> void:
 
 
 func _on_any_wall_destroyed() -> void:
-	if _state == State.APPROACH or _state == State.IDLE_AT_WALL:
+	if _state == State.APPROACH or _state == State.AT_WALL:
 		_retarget()
 
 
@@ -261,3 +283,71 @@ func _update_sprite_facing(direction: Vector2) -> void:
 	if _animated_sprite == null or absf(direction.x) <= FLIP_THRESHOLD:
 		return
 	_animated_sprite.flip_h = direction.x < 0.0
+
+
+func _on_animated_sprite_frame_changed() -> void:
+	if _animated_sprite == null:
+		return
+	if _state != State.AT_WALL:
+		return
+	if _animated_sprite.animation != ATTACK_ANIMATION:
+		return
+	if _animated_sprite.frame != attack_hit_frame:
+		return
+	_attack_wall()
+
+
+func _attack_wall() -> void:
+	if _target_is_breach:
+		return
+	if not is_instance_valid(_target_wall):
+		return
+	if _target_wall.is_destroyed():
+		return
+	_play_attack_feedback()
+	_target_wall.take_damage(wall_attack_damage)
+
+
+func _play_attack_feedback() -> void:
+	_play_attack_sfx()
+	_apply_attack_screenshake()
+
+
+func _play_attack_sfx() -> void:
+	if randf() > ATTACK_SFX_CHANCE:
+		return
+	if _attack_sfx_streams.is_empty():
+		for path: String in _ATTACK_SFX_PATHS:
+			var loaded_stream: AudioStream = load(path) as AudioStream
+			if loaded_stream != null:
+				_attack_sfx_streams.append(loaded_stream)
+	if _attack_sfx_streams.is_empty():
+		return
+	var stream: AudioStream = _attack_sfx_streams[randi_range(0, _attack_sfx_streams.size() - 1)]
+	AudioManager.play_sfx_2d(stream, global_position, ATTACK_SFX_VOLUME_DB)
+
+
+func _apply_attack_screenshake() -> void:
+	var camera: Camera2D = get_viewport().get_camera_2d()
+	if camera == null:
+		return
+	var base_offset: Vector2 = camera.offset
+	var impulse: Vector2 = Vector2(
+		randf_range(-ATTACK_SHAKE_STRENGTH, ATTACK_SHAKE_STRENGTH),
+		randf_range(-ATTACK_SHAKE_STRENGTH, ATTACK_SHAKE_STRENGTH)
+	)
+	camera.offset = base_offset + impulse
+	var tween: Tween = create_tween()
+	tween.tween_property(camera, "offset", base_offset, ATTACK_SHAKE_DURATION_SECONDS)
+
+
+func _play_spawn_sfx() -> void:
+	if _spawn_sfx_streams.is_empty():
+		for path: String in _SPAWN_SFX_PATHS:
+			var loaded_stream: AudioStream = load(path) as AudioStream
+			if loaded_stream != null:
+				_spawn_sfx_streams.append(loaded_stream)
+	if _spawn_sfx_streams.is_empty():
+		return
+	var stream: AudioStream = _spawn_sfx_streams[randi_range(0, _spawn_sfx_streams.size() - 1)]
+	AudioManager.play_sfx_2d(stream, global_position, SPAWN_SFX_VOLUME_DB)

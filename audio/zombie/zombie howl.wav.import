@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://dwksimqrpj8hp"
+path="res://.godot/imported/zombie howl.wav-4f5dad5139a4ea45352d7d6c0f1a07fd.sample"
+
+[deps]
+
+source_file="res://audio/zombie/zombie howl.wav"
+dest_files=["res://.godot/imported/zombie howl.wav-4f5dad5139a4ea45352d7d6c0f1a07fd.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

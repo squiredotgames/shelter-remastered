@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://c3kb4esrc5ukv"
+path="res://.godot/imported/zombie death.mp3-65bfc94f7e36f1ca4e4e4e71911ec28f.mp3str"
+
+[deps]
+
+source_file="res://audio/zombie/zombie death.mp3"
+dest_files=["res://.godot/imported/zombie death.mp3-65bfc94f7e36f1ca4e4e4e71911ec28f.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

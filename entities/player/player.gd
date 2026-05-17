@@ -180,8 +180,8 @@ func _set_mode(mode: Mode) -> void:
 func _cancel_to_move_repair() -> void:
 	_pending_repair = null
 	_has_pending_trap = false
-	_abort_move_to_target()
 	_set_mode(Mode.MOVE_REPAIR)
+	_move_to(get_global_mouse_position())
 
 
 # ── Click routing ─────────────────────────────────────────────────────────────

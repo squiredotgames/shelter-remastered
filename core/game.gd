@@ -8,11 +8,16 @@ const MUTANT_SPAWNER_SCENE: PackedScene = preload("res://entities/enemies/mutant
 const TINT_FADE_SECONDS: float = 1.5
 const DAY_TINT: Color = Color(0, 0, 0, 0)
 const NIGHT_TINT: Color = Color(0.05, 0.05, 0.15, 0.55)
+const NIGHT_FIRST_SPAWN_DELAY_SECONDS: float = 5.0
+const NIGHT_HOWL_SFX_PATH: String = "res://audio/zombie/zombie howl.wav"
+const NIGHT_HOWL_VOLUME_DB: float = -1.0
 
 var _current_level: Node = null
 var _player: Player = null
 var _tint_tween: Tween = null
 var _mutant_spawner: Node = null
+var _night_howl_stream: AudioStream = null
+var _night_spawn_delay_timer: Timer = null
 
 @onready var _tint: ColorRect = $TintOverlay/Rect
 @onready var _hud: Control = $HUDCanvas/HudRoot
@@ -21,6 +26,11 @@ var _mutant_spawner: Node = null
 func _ready() -> void:
 	AudioManager.start_game_music()
 	load_level("level_01")
+	_night_spawn_delay_timer = Timer.new()
+	_night_spawn_delay_timer.one_shot = true
+	_night_spawn_delay_timer.wait_time = NIGHT_FIRST_SPAWN_DELAY_SECONDS
+	_night_spawn_delay_timer.timeout.connect(_on_night_spawn_delay_timeout)
+	add_child(_night_spawn_delay_timer)
 
 	GameState.phase_changed.connect(_on_phase_changed)
 	GameState.run_won.connect(_on_run_won)
@@ -85,8 +95,11 @@ func _on_phase_changed(phase: int, _day_index: int) -> void:
 	var night: bool = phase == GameState.Phase.NIGHT
 	_fade_tint(NIGHT_TINT if night else DAY_TINT)
 	if night:
-		_start_mutant_spawner()
+		_play_night_howl()
+		_start_mutant_spawner_after_delay()
 	else:
+		if _night_spawn_delay_timer != null:
+			_night_spawn_delay_timer.stop()
 		_stop_mutant_spawner()
 
 
@@ -119,3 +132,22 @@ func _on_run_won() -> void:
 func _on_run_lost() -> void:
 	# TODO step 13: show UI/game_over.tscn
 	print("[Game] Run lost.")
+
+
+func _play_night_howl() -> void:
+	if _night_howl_stream == null:
+		_night_howl_stream = load(NIGHT_HOWL_SFX_PATH) as AudioStream
+	AudioManager.play_sfx(_night_howl_stream, NIGHT_HOWL_VOLUME_DB)
+
+
+func _start_mutant_spawner_after_delay() -> void:
+	_stop_mutant_spawner()
+	if _night_spawn_delay_timer == null:
+		return
+	_night_spawn_delay_timer.start(NIGHT_FIRST_SPAWN_DELAY_SECONDS)
+
+
+func _on_night_spawn_delay_timeout() -> void:
+	if GameState.phase != GameState.Phase.NIGHT:
+		return
+	_start_mutant_spawner()

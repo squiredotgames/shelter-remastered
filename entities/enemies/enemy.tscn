@@ -8,10 +8,6 @@
 radius = 4.0
 height = 12.0
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_sb13e"]
-atlas = ExtResource("1_wqcwe")
-region = Rect2(0, 0, 24, 24)
-
 [sub_resource type="AtlasTexture" id="AtlasTexture_3udgd"]
 atlas = ExtResource("1_wqcwe")
 region = Rect2(24, 0, 24, 24)
@@ -23,6 +19,10 @@ region = Rect2(48, 0, 24, 24)
 [sub_resource type="AtlasTexture" id="AtlasTexture_nrfwl"]
 atlas = ExtResource("1_wqcwe")
 region = Rect2(72, 0, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_sb13e"]
+atlas = ExtResource("1_wqcwe")
+region = Rect2(0, 0, 24, 24)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_wqcwe"]
 atlas = ExtResource("1_owq46")
@@ -60,9 +60,6 @@ region = Rect2(168, 0, 24, 24)
 animations = [{
 "frames": [{
 "duration": 4.0,
-"texture": SubResource("AtlasTexture_sb13e")
-}, {
-"duration": 4.0,
 "texture": SubResource("AtlasTexture_3udgd")
 }, {
 "duration": 1.6,
@@ -70,8 +67,11 @@ animations = [{
 }, {
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_nrfwl")
+}, {
+"duration": 8.0,
+"texture": SubResource("AtlasTexture_sb13e")
 }],
-"loop": false,
+"loop": true,
 "name": &"attack",
 "speed": 5.0
 }, {
@@ -107,25 +107,22 @@ animations = [{
 
 [node name="Enemy" type="CharacterBody2D" unique_id=1791868684]
 collision_layer = 4
-collision_mask = 1
 motion_mode = 1
 script = ExtResource("0_enemy")
-
-[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=785250466]
+speed = 40.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=205045334]
-position = Vector2(-4.665, 5.04)
 shape = SubResource("CapsuleShape2D_enemy")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1565233092]
 sprite_frames = SubResource("SpriteFrames_sb13e")
-animation = &"walk"
+animation = &"attack"
+frame_progress = 0.94700944
 speed_scale = 1.5
 
 [node name="NavigationAgent2D" type="NavigationAgent2D" parent="." unique_id=2002113301]
 path_desired_distance = 4.0
 target_desired_distance = 4.0
-avoidance_enabled = false
 radius = 6.0
 neighbor_distance = 24.0
 max_neighbors = 6
