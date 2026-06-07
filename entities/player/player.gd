@@ -52,6 +52,7 @@ const DEAD_ANIMATION: StringName = &"dead"
 
 signal mode_changed(mode: Mode)
 signal molotov_count_changed(count: int)
+signal action_warning_requested(message: String)
 
 var active_mode: Mode = Mode.MOVE_REPAIR
 var target: Vector2
@@ -274,8 +275,6 @@ func _move_to(world_pos: Vector2) -> void:
 
 ## Walk to world_pos; drop a trap when arriving.
 func _begin_place_trap(electric: bool, world_pos: Vector2) -> void:
-	if GameState.phase != GameState.Phase.DAY:
-		return
 	_move_to(world_pos)
 	_pending_trap_electric = electric
 	_has_pending_trap = true
@@ -313,6 +312,7 @@ func _execute_pending_molotov_throw() -> void:
 func _spawn_trap(electric: bool, world_pos: Vector2) -> void:
 	var supplies_cost: int = GameState.electric_trap_supplies_cost if electric else GameState.trap_supplies_cost
 	if not GameState.try_spend_supplies(supplies_cost):
+		action_warning_requested.emit("Not enough supplies for trap")
 		return
 	var scene: PackedScene = ELECTRIC_TRAP_SCENE if electric else BEAR_TRAP_SCENE
 	var trap: Node2D = scene.instantiate() as Node2D

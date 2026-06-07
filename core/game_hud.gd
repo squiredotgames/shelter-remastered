@@ -3,11 +3,13 @@ extends Control
 
 const COLOR_ACTIVE: Color = Color(1.0, 0.85, 0.2)    # yellow highlight
 const COLOR_INACTIVE: Color = Color(0.55, 0.55, 0.55) # dim grey
+const WARNING_SHOW_SECONDS: float = 1.5
 
 @onready var _day_counter: Label = $MarginContainer/VBoxContainer/StatsRow/DayCounterLabel
 @onready var _phase_time: Label = $MarginContainer/VBoxContainer/StatsRow/PhaseTimeLabel
 @onready var _molotov_count_label: Label = $MarginContainer/VBoxContainer/HBoxContainer/MolotovCount
 @onready var _supplies_count_label: Label = $MarginContainer/VBoxContainer/HBoxContainer/SuppliesCount
+@onready var _warning_label: Label = $MarginContainer/VBoxContainer/WarningLabel
 
 @onready var _slot_labels: Array[Label] = [
 	$HotbarRow/Slot1/Label,
@@ -22,6 +24,7 @@ func _ready() -> void:
 	GameState.day_tick.connect(_on_day_tick)
 	GameState.night_tick.connect(_on_night_tick)
 	GameState.supplies_changed.connect(set_supplies_count)
+	_warning_label.visible = false
 	call_deferred("_sync_initial")
 	set_active_mode(Player.Mode.MOVE_REPAIR)
 
@@ -77,3 +80,12 @@ func set_molotov_count(count: int) -> void:
 
 func set_supplies_count(count: int) -> void:
 	_supplies_count_label.text = str(maxi(0, count))
+
+
+func show_warning(message: String) -> void:
+	_warning_label.text = message
+	_warning_label.visible = true
+	var timer: SceneTreeTimer = get_tree().create_timer(WARNING_SHOW_SECONDS)
+	await timer.timeout
+	if is_instance_valid(_warning_label) and _warning_label.text == message:
+		_warning_label.visible = false

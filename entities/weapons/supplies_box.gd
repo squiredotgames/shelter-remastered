@@ -6,6 +6,7 @@ const _PICKUP_STREAM_PATHS: Array[String] = [
 	"res://audio/player/leather_inventory.wav",
 	"res://audio/player/cloth-inventory.wav",
 ]
+const BONUS_MOLOTOV_SFX_PATH: String = "res://audio/player/metal-clash.wav"
 const BONUS_MOLOTOV_CHANCE_DENOMINATOR: int = 10
 const BONUS_POPUP_TEXT: String = "+1 Molotov"
 const BONUS_POPUP_LIFETIME_SECONDS: float = 0.6
@@ -33,6 +34,8 @@ func _on_body_entered(body: Node) -> void:
 	GameState.add_supplies(supplies_count)
 	if randi_range(1, BONUS_MOLOTOV_CHANCE_DENOMINATOR) == 1:
 		if player.add_molotovs(1):
+			var bonus_stream: AudioStream = load(BONUS_MOLOTOV_SFX_PATH) as AudioStream
+			AudioManager.play_sfx_2d(bonus_stream, global_position)
 			_show_bonus_molotov_popup()
 	queue_free()
 

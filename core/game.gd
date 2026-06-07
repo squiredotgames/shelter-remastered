@@ -81,6 +81,10 @@ func _add_player_to_level() -> void:
 			if is_instance_valid(_hud):
 				_hud.call("set_molotov_count", count)
 		)
+		_player.action_warning_requested.connect(func(message: String) -> void:
+			if is_instance_valid(_hud):
+				_hud.call("show_warning", message)
+		)
 
 	entities.add_child(_player)
 

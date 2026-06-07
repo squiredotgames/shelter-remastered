@@ -1,6 +1,6 @@
 extends Node2D
 
-@export var speed: float = 280.0
+@export var flight_duration_seconds: float = 0.6
 @export var impact_distance: float = 8.0
 @export var arc_height: float = 36.0
 @export var spin_speed_degrees: float = 500.0
@@ -15,8 +15,7 @@ var _elapsed_time: float = 0.0
 func launch_to(target_position: Vector2) -> void:
 	_start_position = global_position
 	_target = target_position
-	var distance: float = _start_position.distance_to(_target)
-	_travel_duration = maxf(0.001, distance / maxf(1.0, speed))
+	_travel_duration = maxf(0.001, flight_duration_seconds)
 	_elapsed_time = 0.0
 	_is_flying = true
 
