@@ -3,6 +3,8 @@
 [ext_resource type="Script" uid="uid://ok2f3ugchabl" path="res://entities/enemies/enemy.gd" id="0_enemy"]
 [ext_resource type="Texture2D" uid="uid://c1vyi5h35ki3h" path="res://sprites/Ghoul/Mutant walk right.png" id="1_owq46"]
 [ext_resource type="Texture2D" uid="uid://bi8oxigd1bjqh" path="res://sprites/Ghoul/mutant attack wall right.png" id="1_wqcwe"]
+[ext_resource type="Texture2D" uid="uid://b6jfrnuucg1fx" path="res://sprites/Ghoul/mutant electrocuted right.png" id="3_msovg"]
+[ext_resource type="Texture2D" uid="uid://coes7ccukfegl" path="res://sprites/Ghoul/mutant dead right side 1.png" id="4_twyc1"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_enemy"]
 radius = 4.0
@@ -23,6 +25,62 @@ region = Rect2(72, 0, 24, 24)
 [sub_resource type="AtlasTexture" id="AtlasTexture_sb13e"]
 atlas = ExtResource("1_wqcwe")
 region = Rect2(0, 0, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5xow2"]
+atlas = ExtResource("3_msovg")
+region = Rect2(0, 0, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xmuku"]
+atlas = ExtResource("3_msovg")
+region = Rect2(24, 0, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2ggct"]
+atlas = ExtResource("3_msovg")
+region = Rect2(48, 0, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wy1il"]
+atlas = ExtResource("3_msovg")
+region = Rect2(72, 0, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_53k0f"]
+atlas = ExtResource("3_msovg")
+region = Rect2(96, 0, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_u01qb"]
+atlas = ExtResource("3_msovg")
+region = Rect2(120, 0, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4teby"]
+atlas = ExtResource("3_msovg")
+region = Rect2(144, 0, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bjdlj"]
+atlas = ExtResource("3_msovg")
+region = Rect2(168, 0, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ku6gj"]
+atlas = ExtResource("4_twyc1")
+region = Rect2(0, 0, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_8edke"]
+atlas = ExtResource("4_twyc1")
+region = Rect2(24, 0, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_y4tt3"]
+atlas = ExtResource("4_twyc1")
+region = Rect2(48, 0, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_21xsh"]
+atlas = ExtResource("4_twyc1")
+region = Rect2(72, 0, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rag6w"]
+atlas = ExtResource("4_twyc1")
+region = Rect2(96, 0, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ftsks"]
+atlas = ExtResource("4_twyc1")
+region = Rect2(120, 0, 24, 24)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_wqcwe"]
 atlas = ExtResource("1_owq46")
@@ -77,6 +135,58 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
+"texture": SubResource("AtlasTexture_5xow2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xmuku")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2ggct")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_wy1il")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_53k0f")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_u01qb")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4teby")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bjdlj")
+}],
+"loop": true,
+"name": &"electrified",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ku6gj")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_8edke")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_y4tt3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_21xsh")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rag6w")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ftsks")
+}],
+"loop": true,
+"name": &"killed",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_wqcwe")
 }, {
 "duration": 1.0,
@@ -117,8 +227,8 @@ shape = SubResource("CapsuleShape2D_enemy")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1565233092]
 sprite_frames = SubResource("SpriteFrames_sb13e")
-animation = &"attack"
-frame_progress = 0.94700944
+animation = &"walk"
+frame_progress = 0.56067985
 speed_scale = 1.5
 
 [node name="NavigationAgent2D" type="NavigationAgent2D" parent="." unique_id=2002113301]

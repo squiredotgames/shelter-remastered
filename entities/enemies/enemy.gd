@@ -16,12 +16,16 @@ class_name Enemy
 
 const WALK_ANIMATION: StringName = &"walk"
 const ATTACK_ANIMATION: StringName = &"attack"
+const KILLED_ANIMATION: StringName = &"killed"
+const ELECTRIFIED_ANIMATION: StringName = &"electrified"
 const FLIP_THRESHOLD: float = 0.01
 const ATTACK_SHAKE_STRENGTH: float = 2.0
 const ATTACK_SHAKE_DURATION_SECONDS: float = 0.07
 const ATTACK_SFX_VOLUME_DB: float = -2.0
 const ATTACK_SFX_CHANCE: float = 0.25
 const SPAWN_SFX_VOLUME_DB: float = -1.0
+const DEATH_SFX_PATH: String = "res://audio/zombie/zombie death.mp3"
+const DEATH_SFX_VOLUME_DB: float = -1.0
 const _ATTACK_SFX_PATHS: Array[String] = [
 	"res://audio/zombie/zombie attack 1.mp3",
 	"res://audio/zombie/zombie attack 2.mp3",
@@ -55,6 +59,8 @@ var _spawn_side: int = Wall.Orientation.TOP
 var _stuck_time: float = 0.0
 var _attack_sfx_streams: Array[AudioStream] = []
 var _spawn_sfx_streams: Array[AudioStream] = []
+var _death_sfx_stream: AudioStream = null
+var _is_dying: bool = false
 
 @onready var _animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var _nav_agent: NavigationAgent2D = $NavigationAgent2D
@@ -69,6 +75,7 @@ func _ready() -> void:
 	_connect_wall_signals()
 	if _animated_sprite != null:
 		_animated_sprite.frame_changed.connect(_on_animated_sprite_frame_changed)
+		_animated_sprite.animation_finished.connect(_on_animated_sprite_animation_finished)
 	_play_spawn_sfx()
 	_retarget()
 	_play_animation(WALK_ANIMATION)
@@ -79,6 +86,10 @@ func _exit_tree() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if _is_dying:
+		velocity = Vector2.ZERO
+		move_and_slide()
+		return
 	# Keep local crowd avoidance active only while chasing inside the shelter.
 	_nav_agent.avoidance_enabled = _state == State.INSIDE
 	match _state:
@@ -307,7 +318,9 @@ func _get_player_position() -> Vector2:
 
 
 func _play_animation(animation_name: StringName) -> void:
-	if _animated_sprite == null or _animated_sprite.animation == animation_name:
+	if _animated_sprite == null:
+		return
+	if _animated_sprite.animation == animation_name and _animated_sprite.is_playing():
 		return
 	_animated_sprite.play(animation_name)
 
@@ -319,6 +332,8 @@ func _update_sprite_facing(direction: Vector2) -> void:
 
 
 func _on_animated_sprite_frame_changed() -> void:
+	if _is_dying:
+		return
 	if _animated_sprite == null:
 		return
 	if _animated_sprite.animation != ATTACK_ANIMATION:
@@ -397,3 +412,44 @@ func _play_spawn_sfx() -> void:
 		return
 	var stream: AudioStream = _spawn_sfx_streams[randi_range(0, _spawn_sfx_streams.size() - 1)]
 	AudioManager.play_sfx_2d(stream, global_position, SPAWN_SFX_VOLUME_DB)
+
+
+func _play_death_sfx() -> void:
+	if _death_sfx_stream == null:
+		_death_sfx_stream = load(DEATH_SFX_PATH) as AudioStream
+	if _death_sfx_stream == null:
+		return
+	AudioManager.play_sfx_2d(_death_sfx_stream, global_position, DEATH_SFX_VOLUME_DB)
+
+
+func die_from_trap(electric: bool) -> void:
+	if _is_dying:
+		return
+	_is_dying = true
+	_play_death_sfx()
+	_release_current_claim()
+	_target_wall = null
+	_target_is_breach = false
+	velocity = Vector2.ZERO
+	collision_layer = 0
+	collision_mask = 0
+	if has_node("CollisionShape2D"):
+		var shape: CollisionShape2D = get_node("CollisionShape2D") as CollisionShape2D
+		if shape != null:
+			shape.disabled = true
+	var death_animation: StringName = ELECTRIFIED_ANIMATION if electric else KILLED_ANIMATION
+	if _animated_sprite == null or not _animated_sprite.sprite_frames.has_animation(death_animation):
+		queue_free()
+		return
+	_animated_sprite.sprite_frames.set_animation_loop(death_animation, false)
+	_animated_sprite.play(death_animation)
+
+
+func _on_animated_sprite_animation_finished() -> void:
+	if not _is_dying:
+		return
+	if _animated_sprite == null:
+		queue_free()
+		return
+	if _animated_sprite.animation == KILLED_ANIMATION or _animated_sprite.animation == ELECTRIFIED_ANIMATION:
+		queue_free()
