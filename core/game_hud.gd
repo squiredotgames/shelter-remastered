@@ -6,6 +6,8 @@ const COLOR_INACTIVE: Color = Color(0.55, 0.55, 0.55) # dim grey
 
 @onready var _day_counter: Label = $MarginContainer/VBoxContainer/StatsRow/DayCounterLabel
 @onready var _phase_time: Label = $MarginContainer/VBoxContainer/StatsRow/PhaseTimeLabel
+@onready var _molotov_count_label: Label = $MarginContainer/VBoxContainer/HBoxContainer/MolotovCount
+@onready var _supplies_count_label: Label = $MarginContainer/VBoxContainer/HBoxContainer/SuppliesCount
 
 @onready var _slot_labels: Array[Label] = [
 	$HotbarRow/Slot1/Label,
@@ -19,6 +21,7 @@ func _ready() -> void:
 	GameState.phase_changed.connect(_on_phase_changed)
 	GameState.day_tick.connect(_on_day_tick)
 	GameState.night_tick.connect(_on_night_tick)
+	GameState.supplies_changed.connect(set_supplies_count)
 	call_deferred("_sync_initial")
 	set_active_mode(Player.Mode.MOVE_REPAIR)
 
@@ -29,6 +32,7 @@ func _sync_initial() -> void:
 		_on_day_tick(GameState.get_day_time_left())
 	else:
 		_on_night_tick(GameState.get_night_elapsed())
+	set_supplies_count(GameState.supplies)
 
 
 ## Called by Game when the player switches hotbar slot.
@@ -65,3 +69,11 @@ func _format_mm_ss(seconds: float) -> String:
 	var m: int = int(total / 60.0)
 	var s: int = total % 60
 	return "%d:%02d" % [m, s]
+
+
+func set_molotov_count(count: int) -> void:
+	_molotov_count_label.text = str(maxi(0, count))
+
+
+func set_supplies_count(count: int) -> void:
+	_supplies_count_label.text = str(maxi(0, count))

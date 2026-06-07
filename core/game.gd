@@ -77,6 +77,10 @@ func _add_player_to_level() -> void:
 			if is_instance_valid(_hud):
 				_hud.call("set_active_mode", mode)
 		)
+		_player.molotov_count_changed.connect(func(count: int) -> void:
+			if is_instance_valid(_hud):
+				_hud.call("set_molotov_count", count)
+		)
 
 	entities.add_child(_player)
 
@@ -84,6 +88,8 @@ func _add_player_to_level() -> void:
 	if spawn:
 		_player.global_position = spawn.global_position
 	_player.reset_target()
+	if is_instance_valid(_hud):
+		_hud.call("set_molotov_count", _player.get_molotov_count())
 
 
 func _remove_player_from_level() -> void:

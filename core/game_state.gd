@@ -11,12 +11,18 @@ signal day_tick(time_left_seconds: float)
 signal night_tick(elapsed_seconds: float)
 signal run_won
 signal run_lost
+signal supplies_changed(count: int)
 
 const TOTAL_NIGHTS: int = 4
 const DAY_DURATION_SECONDS: float = 45.0
 
 var phase: int = Phase.DAY
 var day_index: int = 1
+@export var starting_supplies: int = 0
+@export var repair_supplies_cost: int = 1
+@export var trap_supplies_cost: int = 2
+@export var electric_trap_supplies_cost: int = 3
+var supplies: int = 0
 
 var _day_time_left: float = 0.0
 var _night_elapsed: float = 0.0
@@ -26,6 +32,8 @@ var _run_active: bool = false
 
 func start_run() -> void:
 	day_index = 1
+	supplies = maxi(0, starting_supplies)
+	supplies_changed.emit(supplies)
 	_run_active = true
 	set_process(true)
 	_enter_day()
@@ -84,6 +92,23 @@ func get_day_time_left() -> float:
 
 func get_night_elapsed() -> float:
 	return _night_elapsed
+
+
+func add_supplies(amount: int) -> void:
+	if amount <= 0:
+		return
+	supplies = maxi(0, supplies + amount)
+	supplies_changed.emit(supplies)
+
+
+func try_spend_supplies(amount: int) -> bool:
+	if amount <= 0:
+		return true
+	if supplies < amount:
+		return false
+	supplies -= amount
+	supplies_changed.emit(supplies)
+	return true
 
 
 func _enter_day() -> void:

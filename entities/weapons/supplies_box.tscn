@@ -1,0 +1,20 @@
+[gd_scene format=3 uid="uid://b035on44veig"]
+
+[ext_resource type="Texture2D" uid="uid://3ukep2clag4c" path="res://sprites/caja.png" id="1_6lif0"]
+[ext_resource type="Script" uid="uid://dkqarmygco6vh" path="res://entities/weapons/supplies_box.gd" id="1_macon"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_macon"]
+radius = 16.0
+
+[node name="SuppliesBox" type="Area2D" unique_id=515477975]
+collision_mask = 2
+script = ExtResource("1_macon")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=70610933]
+shape = SubResource("CircleShape2D_macon")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1308858020]
+texture = ExtResource("1_6lif0")
+
+[connection signal="area_entered" from="." to="." method="_on_area_entered"]
+[connection signal="area_exited" from="." to="." method="_on_area_exited"]

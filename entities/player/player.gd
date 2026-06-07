@@ -11,6 +11,7 @@ const FLIP_THRESHOLD: float = 0.01
 const TARGET_MARKER_SCENE: PackedScene = preload("res://entities/fx/target_marker.tscn")
 const BEAR_TRAP_SCENE: PackedScene = preload("res://entities/weapons/bear_trap.tscn")
 const ELECTRIC_TRAP_SCENE: PackedScene = preload("res://entities/weapons/electric_trap.tscn")
+const MOLOTOV_SCENE: PackedScene = preload("res://entities/weapons/molotov.tscn")
 
 const _FOOTSTEP_STREAMS: Array[AudioStream] = [
 	preload("res://audio/footsteps/Footstep Concrete 01.wav"),
@@ -46,8 +47,11 @@ const DEAD_ANIMATION: StringName = &"dead"
 @export var footstep_volume_db: float = 8.0
 @export var max_hp: int = 100
 @export var damage_cooldown_seconds: float = 0.6
+@export var molotov_capacity: int = 3
+@export var molotov_throw_max_radius: float = 160.0
 
 signal mode_changed(mode: Mode)
+signal molotov_count_changed(count: int)
 
 var active_mode: Mode = Mode.MOVE_REPAIR
 var target: Vector2
@@ -67,6 +71,9 @@ var _hp: int = 100
 var _damage_cooldown_left: float = 0.0
 var _is_dead: bool = false
 var _hit_vocal_streams: Array[AudioStream] = []
+var _molotov_count: int = 0
+var _has_pending_molotov_throw: bool = false
+var _pending_molotov_target: Vector2 = Vector2.ZERO
 
 @onready var _animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 
@@ -75,6 +82,8 @@ func _ready() -> void:
 	add_to_group("player")
 	target = global_position
 	_hp = max_hp
+	_molotov_count = maxi(0, molotov_capacity)
+	molotov_count_changed.emit(_molotov_count)
 
 
 func _exit_tree() -> void:
@@ -91,6 +100,7 @@ func reset_target() -> void:
 	target = global_position
 	_pending_repair = null
 	_has_pending_trap = false
+	_has_pending_molotov_throw = false
 	_stuck_time_seconds = 0.0
 	_footstep_phase_seconds = 0.0
 	_footstep_in_walk_cadence = false
@@ -131,9 +141,16 @@ func _physics_process(delta: float) -> void:
 			_pending_repair = null
 		elif global_position.distance_to(_pending_repair.global_position) <= REPAIR_REACH:
 			if not _pending_repair.is_destroyed():
-				_pending_repair.repair(REPAIR_AMOUNT)
+				if GameState.try_spend_supplies(GameState.repair_supplies_cost):
+					_pending_repair.repair(REPAIR_AMOUNT)
 			_pending_repair = null
 			_abort_move_to_target()
+			return
+	if _has_pending_molotov_throw:
+		if _molotov_count <= 0:
+			_has_pending_molotov_throw = false
+		elif global_position.distance_to(_pending_molotov_target) <= molotov_throw_max_radius:
+			_execute_pending_molotov_throw()
 			return
 
 	if global_position.distance_to(target) <= stop_distance:
@@ -186,6 +203,7 @@ func _set_mode(mode: Mode) -> void:
 		return
 	active_mode = mode
 	_has_pending_trap = false
+	_has_pending_molotov_throw = false
 	match mode:
 		Mode.TRAP_NORMAL:
 			_show_trap_ghost(false)
@@ -199,6 +217,7 @@ func _set_mode(mode: Mode) -> void:
 func _cancel_to_move_repair() -> void:
 	_pending_repair = null
 	_has_pending_trap = false
+	_has_pending_molotov_throw = false
 	_set_mode(Mode.MOVE_REPAIR)
 	_move_to(get_global_mouse_position())
 
@@ -219,7 +238,7 @@ func _handle_click() -> void:
 		Mode.TRAP_ELECTRIC:
 			_begin_place_trap(true, mouse_pos)
 		Mode.MOLOTOV:
-			_throw_molotov(mouse_pos)
+			_begin_throw_molotov(mouse_pos)
 
 
 func _wall_at(world_pos: Vector2) -> Wall:
@@ -245,6 +264,8 @@ func _begin_repair(wall: Wall) -> void:
 
 func _move_to(world_pos: Vector2) -> void:
 	_pending_repair = null
+	_has_pending_trap = false
+	_has_pending_molotov_throw = false
 	_stuck_time_seconds = 0.0
 	_footstep_in_walk_cadence = false
 	target = world_pos
@@ -260,7 +281,39 @@ func _begin_place_trap(electric: bool, world_pos: Vector2) -> void:
 	_has_pending_trap = true
 
 
+func _begin_throw_molotov(world_pos: Vector2) -> void:
+	if _molotov_count <= 0:
+		return
+	_pending_repair = null
+	_has_pending_trap = false
+	_pending_molotov_target = world_pos
+	_has_pending_molotov_throw = true
+	_update_sprite_facing(global_position.direction_to(world_pos))
+	if global_position.distance_to(world_pos) <= molotov_throw_max_radius:
+		_execute_pending_molotov_throw()
+		return
+	_stuck_time_seconds = 0.0
+	_footstep_in_walk_cadence = false
+	target = world_pos
+	_show_destination_marker_at(target)
+
+
+func _execute_pending_molotov_throw() -> void:
+	if not _has_pending_molotov_throw:
+		return
+	if _molotov_count <= 0:
+		_has_pending_molotov_throw = false
+		return
+	var throw_target: Vector2 = _pending_molotov_target
+	_has_pending_molotov_throw = false
+	_abort_move_to_target()
+	_throw_molotov(throw_target)
+
+
 func _spawn_trap(electric: bool, world_pos: Vector2) -> void:
+	var supplies_cost: int = GameState.electric_trap_supplies_cost if electric else GameState.trap_supplies_cost
+	if not GameState.try_spend_supplies(supplies_cost):
+		return
 	var scene: PackedScene = ELECTRIC_TRAP_SCENE if electric else BEAR_TRAP_SCENE
 	var trap: Node2D = scene.instantiate() as Node2D
 	get_parent().add_child(trap)
@@ -293,8 +346,19 @@ func _hide_trap_ghost() -> void:
 
 
 func _throw_molotov(_world_pos: Vector2) -> void:
-	# TODO: instantiate molotov projectile and launch toward world_pos.
-	pass
+	if _molotov_count <= 0:
+		return
+	var molotov: Node2D = MOLOTOV_SCENE.instantiate() as Node2D
+	get_parent().add_child(molotov)
+	molotov.global_position = global_position
+	if molotov.has_method("launch_to"):
+		molotov.call("launch_to", _world_pos)
+	_molotov_count = maxi(0, _molotov_count - 1)
+	molotov_count_changed.emit(_molotov_count)
+
+
+func get_molotov_count() -> int:
+	return _molotov_count
 
 
 # ── Animation ─────────────────────────────────────────────────────────────────

@@ -76,6 +76,16 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 16
 text = "0"
 
+[node name="SuppliesLabel" type="Label" parent="HUDCanvas/HudRoot/MarginContainer/VBoxContainer/HBoxContainer" unique_id=1549002210]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "Supplies:"
+
+[node name="SuppliesCount" type="Label" parent="HUDCanvas/HudRoot/MarginContainer/VBoxContainer/HBoxContainer" unique_id=623181145]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "0"
+
 [node name="HotbarRow" type="HBoxContainer" parent="HUDCanvas/HudRoot" unique_id=1446156660]
 layout_mode = 1
 anchors_preset = 12
@@ -84,6 +94,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 offset_top = -22.0
 offset_bottom = -2.0
+grow_horizontal = 2
 grow_vertical = 0
 theme_override_constants/separation = 3
 alignment = 1

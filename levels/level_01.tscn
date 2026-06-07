@@ -16,6 +16,7 @@
 [ext_resource type="Texture2D" uid="uid://7hebgvec7gxd" path="res://sprites/Decorations/puertayescalera.png" id="11_kjd3d"]
 [ext_resource type="Script" uid="uid://ueoscqsmw8e7" path="res://entities/props/decoration_depth.gd" id="12_depth"]
 [ext_resource type="Script" uid="uid://bb3ift7hk41rm" path="res://levels/level_01.gd" id="13_level01"]
+[ext_resource type="PackedScene" uid="uid://b035on44veig" path="res://entities/weapons/supplies_box.tscn" id="17_2t17w"]
 [ext_resource type="PackedScene" uid="uid://3mnnas2fwt1r" path="res://entities/weapons/molotov.tscn" id="18_2t17w"]
 
 [sub_resource type="NavigationPolygon" id="NavigationPolygon_lvl"]
@@ -189,6 +190,17 @@ position = Vector2(216, -8)
 
 [node name="WallCornerTR" parent="Entities/Walls" unique_id=117687613 instance=ExtResource("10_d3o6j")]
 position = Vector2(8, -8)
+
+[node name="Supplies" type="Node2D" parent="Entities" unique_id=1934589099]
+
+[node name="SuppliesBox" parent="Entities/Supplies" unique_id=515477975 instance=ExtResource("17_2t17w")]
+position = Vector2(56, -232)
+
+[node name="SuppliesBox2" parent="Entities/Supplies" unique_id=2073618214 instance=ExtResource("17_2t17w")]
+position = Vector2(144, -264)
+
+[node name="SuppliesBox3" parent="Entities/Supplies" unique_id=928105547 instance=ExtResource("17_2t17w")]
+position = Vector2(320, -184)
 
 [node name="WorldBounds" type="Node2D" parent="." unique_id=1848237374]
 

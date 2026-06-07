@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://3mnnas2fwt1r"]
 
 [ext_resource type="Texture2D" uid="uid://bdxotkhp24a22" path="res://sprites/Weapons/Molotov.png" id="1_5k1t4"]
+[ext_resource type="Script" path="res://entities/weapons/molotov.gd" id="2_molotov_script"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_igfho"]
 atlas = ExtResource("1_5k1t4")
@@ -60,6 +61,7 @@ animations = [{
 }]
 
 [node name="Molotov" type="Node2D" unique_id=974055789]
+script = ExtResource("2_molotov_script")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=509941599]
 sprite_frames = SubResource("SpriteFrames_npvk3")
