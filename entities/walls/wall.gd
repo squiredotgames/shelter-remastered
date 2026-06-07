@@ -35,6 +35,9 @@ const _SPRITES := "res://sprites/Walls/"
 const _BREAK_SFX_PATH: String = "res://audio/walls/break.wav"
 const _BREAK_SFX_VOLUME_DB: float = 1.5
 const _HIT_SFX_VOLUME_DB: float = -2.0
+## Draw rubble below actors but above ground tiles (which sit at z -2).
+const _DESTROYED_Z_INDEX: int = -1
+const _DEFAULT_Z_INDEX: int = 0
 
 signal health_changed(current_health: int, max_health: int)
 signal wall_destroyed
@@ -65,6 +68,7 @@ func _ready() -> void:
 	add_to_group("walls")
 	_health = max_health
 	_refresh_texture()
+	_update_draw_order()
 
 
 func take_damage(amount: int) -> void:
@@ -90,6 +94,7 @@ func fully_repair() -> void:
 	_collision.set_deferred("disabled", false)
 	health_changed.emit(_health, max_health)
 	_refresh_texture()
+	_update_draw_order()
 
 
 func is_destroyed() -> bool:
@@ -193,6 +198,7 @@ func _set_health(value: int) -> void:
 		return
 	_tier = t
 	_refresh_texture()
+	_update_draw_order()
 	if _tier == 5:
 		_collision.set_deferred("disabled", true)
 		if _break_sfx_stream == null:
@@ -245,3 +251,10 @@ func _texture_path() -> String:
 			return _SPRITES + _TIER_FOLDER[_tier] + _TIER_PREFIX[_tier] + "left.png"
 		_:
 			return _SPRITES + _TIER_FOLDER[_tier] + _TIER_PREFIX[_tier] + "right.png"
+
+
+func _update_draw_order() -> void:
+	# Rubble is floor debris: pin it below actors (z -1) so player/ghouls always
+	# walk over a breach. Ground tiles sit lower still (z -2) so rubble stays
+	# above the grass. Intact walls keep z 0 and Y-sort with the actors.
+	z_index = _DESTROYED_Z_INDEX if is_destroyed() else _DEFAULT_Z_INDEX

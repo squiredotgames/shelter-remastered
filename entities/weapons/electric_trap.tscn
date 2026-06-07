@@ -2,10 +2,10 @@
 
 [ext_resource type="Texture2D" uid="uid://c211m73fyn5jt" path="res://sprites/Traps/electric trap.png" id="1_0upk5"]
 [ext_resource type="Texture2D" uid="uid://gopg5ykhapmk" path="res://sprites/Traps/electric trap off.png" id="1_7fw4e"]
-[ext_resource type="Script" path="res://entities/weapons/trap.gd" id="2_trap"]
+[ext_resource type="Script" uid="uid://dd4nvbnn2j03j" path="res://entities/weapons/trap.gd" id="2_trap"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_soly0"]
-size = Vector2(32, 28)
+size = Vector2(32, 21)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_ct68w"]
 atlas = ExtResource("1_0upk5")
@@ -74,7 +74,7 @@ script = ExtResource("2_trap")
 max_charges = 5
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=66244458]
-position = Vector2(0, 1)
+position = Vector2(0, -2.5)
 shape = SubResource("RectangleShape2D_soly0")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=673566191]

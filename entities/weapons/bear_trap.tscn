@@ -51,7 +51,8 @@ animations = [{
 "speed": 5.0
 }]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_a6kfm"]
+[sub_resource type="CircleShape2D" id="CircleShape2D_csp6h"]
+radius = 8.0
 
 [node name="BearTrap" type="Area2D" unique_id=586026756]
 script = ExtResource("2_trap")
@@ -60,4 +61,4 @@ script = ExtResource("2_trap")
 sprite_frames = SubResource("SpriteFrames_h4m6x")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1001819798]
-shape = SubResource("RectangleShape2D_a6kfm")
+shape = SubResource("CircleShape2D_csp6h")

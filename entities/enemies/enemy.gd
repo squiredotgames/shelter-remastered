@@ -392,14 +392,18 @@ func _apply_attack_screenshake() -> void:
 	var camera: Camera2D = get_viewport().get_camera_2d()
 	if camera == null:
 		return
-	var base_offset: Vector2 = camera.offset
+	# The camera follows the player in the physics loop with physics interpolation
+	# on, so the shake must also run in physics. An idle-loop tween updates the
+	# offset at render rate and beats against the interpolated camera follow,
+	# which makes the shake jitter while the player is moving.
 	var impulse: Vector2 = Vector2(
 		randf_range(-ATTACK_SHAKE_STRENGTH, ATTACK_SHAKE_STRENGTH),
 		randf_range(-ATTACK_SHAKE_STRENGTH, ATTACK_SHAKE_STRENGTH)
 	)
-	camera.offset = base_offset + impulse
+	camera.offset = impulse
 	var tween: Tween = create_tween()
-	tween.tween_property(camera, "offset", base_offset, ATTACK_SHAKE_DURATION_SECONDS)
+	tween.set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
+	tween.tween_property(camera, "offset", Vector2.ZERO, ATTACK_SHAKE_DURATION_SECONDS)
 
 
 func _play_spawn_sfx() -> void:
