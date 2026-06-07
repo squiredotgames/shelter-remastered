@@ -361,6 +361,17 @@ func get_molotov_count() -> int:
 	return _molotov_count
 
 
+func add_molotovs(amount: int) -> bool:
+	if amount <= 0:
+		return false
+	var previous_count: int = _molotov_count
+	_molotov_count = clampi(_molotov_count + amount, 0, molotov_capacity)
+	if _molotov_count == previous_count:
+		return false
+	molotov_count_changed.emit(_molotov_count)
+	return true
+
+
 # ── Animation ─────────────────────────────────────────────────────────────────
 
 func _play_animation(animation_name: StringName) -> void:
