@@ -7,6 +7,11 @@ const WALK_ANIMATION: StringName = &"walk"
 const IDLE_ANIMATION: StringName = &"idle"
 const CLICK_ACTION: StringName = &"click"
 const FLIP_THRESHOLD: float = 0.01
+const HP_COLOR_GREEN: Color = Color(0.2, 0.85, 0.35, 1.0)
+const HP_COLOR_YELLOW: Color = Color(0.95, 0.8, 0.2, 1.0)
+const HP_COLOR_RED: Color = Color(0.9, 0.2, 0.2, 1.0)
+const HP_YELLOW_THRESHOLD: float = 0.6
+const HP_RED_THRESHOLD: float = 0.3
 
 const TARGET_MARKER_SCENE: PackedScene = preload("res://entities/fx/target_marker.tscn")
 const BEAR_TRAP_SCENE: PackedScene = preload("res://entities/weapons/bear_trap.tscn")
@@ -77,12 +82,14 @@ var _has_pending_molotov_throw: bool = false
 var _pending_molotov_target: Vector2 = Vector2.ZERO
 
 @onready var _animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
+@onready var _head_health_bar: ProgressBar = $HeadHealthBar
 
 
 func _ready() -> void:
 	add_to_group("player")
 	target = global_position
 	_hp = max_hp
+	_update_head_health_bar()
 	_molotov_count = maxi(0, molotov_capacity)
 	molotov_count_changed.emit(_molotov_count)
 
@@ -361,6 +368,10 @@ func get_molotov_count() -> int:
 	return _molotov_count
 
 
+func get_current_hp() -> int:
+	return _hp
+
+
 func add_molotovs(amount: int) -> bool:
 	if amount <= 0:
 		return false
@@ -448,9 +459,33 @@ func take_damage(amount: int) -> void:
 		return
 	_damage_cooldown_left = damage_cooldown_seconds
 	_hp = maxi(0, _hp - amount)
+	_update_head_health_bar()
 	_play_hit_vocalization()
 	if _hp <= 0:
 		_is_dead = true
 		velocity = Vector2.ZERO
 		_play_animation(DEAD_ANIMATION)
 		GameState.notify_player_died()
+
+
+func _update_head_health_bar() -> void:
+	var clamped_max_hp: int = maxi(1, max_hp)
+	var clamped_current_hp: int = clampi(_hp, 0, clamped_max_hp)
+	_head_health_bar.max_value = clamped_max_hp
+	_head_health_bar.value = clamped_current_hp
+	_head_health_bar.visible = clamped_current_hp < clamped_max_hp
+	var hp_ratio: float = float(clamped_current_hp) / float(clamped_max_hp)
+	if hp_ratio <= HP_RED_THRESHOLD:
+		_apply_head_health_bar_fill_color(HP_COLOR_RED)
+	elif hp_ratio <= HP_YELLOW_THRESHOLD:
+		_apply_head_health_bar_fill_color(HP_COLOR_YELLOW)
+	else:
+		_apply_head_health_bar_fill_color(HP_COLOR_GREEN)
+
+
+func _apply_head_health_bar_fill_color(color: Color) -> void:
+	var fill_stylebox: StyleBoxFlat = _head_health_bar.get_theme_stylebox("fill")
+	if fill_stylebox != null:
+		var fill_copy: StyleBoxFlat = fill_stylebox.duplicate() as StyleBoxFlat
+		fill_copy.bg_color = color
+		_head_health_bar.add_theme_stylebox_override("fill", fill_copy)

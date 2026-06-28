@@ -4,6 +4,10 @@ class_name Game
 const LEVELS_PATH: String = "res://levels/"
 const PLAYER_SCENE: PackedScene = preload("res://entities/player/player.tscn")
 const MUTANT_SPAWNER_SCENE: PackedScene = preload("res://entities/enemies/mutant_spawner.tscn")
+const GAME_OVER_SCENE: PackedScene = preload("res://UI/game_over.tscn")
+
+## Delay before the game over screen appears, so the death animation can play.
+const GAME_OVER_DELAY_SECONDS: float = 1.5
 
 const TINT_FADE_SECONDS: float = 1.5
 const DAY_TINT: Color = Color(0, 0, 0, 0)
@@ -18,6 +22,7 @@ var _tint_tween: Tween = null
 var _mutant_spawner: Node = null
 var _night_howl_stream: AudioStream = null
 var _night_spawn_delay_timer: Timer = null
+var _game_over_screen: CanvasLayer = null
 
 @onready var _tint: ColorRect = $TintOverlay/Rect
 @onready var _hud: Control = $HUDCanvas/HudRoot
@@ -140,8 +145,15 @@ func _on_run_won() -> void:
 
 
 func _on_run_lost() -> void:
-	# TODO step 13: show UI/game_over.tscn
-	print("[Game] Run lost.")
+	_stop_mutant_spawner()
+	if _night_spawn_delay_timer != null:
+		_night_spawn_delay_timer.stop()
+	await get_tree().create_timer(GAME_OVER_DELAY_SECONDS).timeout
+	if _game_over_screen != null:
+		return
+	AudioManager.stop_game_music()
+	_game_over_screen = GAME_OVER_SCENE.instantiate() as CanvasLayer
+	add_child(_game_over_screen)
 
 
 func _play_night_howl() -> void:

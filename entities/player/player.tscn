@@ -170,3 +170,14 @@ shape = SubResource("CapsuleShape2D_hqtel")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1741787759]
 process_callback = 0
+
+[node name="HeadHealthBar" type="ProgressBar" parent="." unique_id=799384708]
+custom_minimum_size = Vector2(24, 4)
+layout_mode = 0
+offset_left = -12.0
+offset_top = -22.0
+offset_right = 12.0
+offset_bottom = -18.0
+max_value = 100.0
+value = 100.0
+show_percentage = false

@@ -430,6 +430,7 @@ func die_from_trap(electric: bool) -> void:
 	if _is_dying:
 		return
 	_is_dying = true
+	GameState.notify_mutant_killed()
 	_play_death_sfx()
 	_release_current_claim()
 	_target_wall = null

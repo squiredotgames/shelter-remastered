@@ -24,8 +24,13 @@ var day_index: int = 1
 @export var electric_trap_supplies_cost: int = 3
 var supplies: int = 0
 
+## Cumulative run stats, reported on the game over screen. Reset in start_run().
+var total_supplies_collected: int = 0
+var mutants_killed: int = 0
+
 var _day_time_left: float = 0.0
 var _night_elapsed: float = 0.0
+var _survival_time_seconds: float = 0.0
 var _wave_active: bool = false
 var _run_active: bool = false
 
@@ -33,6 +38,9 @@ var _run_active: bool = false
 func start_run() -> void:
 	day_index = 1
 	supplies = maxi(0, starting_supplies)
+	total_supplies_collected = supplies
+	mutants_killed = 0
+	_survival_time_seconds = 0.0
 	supplies_changed.emit(supplies)
 	_run_active = true
 	set_process(true)
@@ -42,6 +50,7 @@ func start_run() -> void:
 func _process(delta: float) -> void:
 	if not _run_active:
 		return
+	_survival_time_seconds += delta
 	if phase == Phase.DAY:
 		_day_time_left = maxf(0.0, _day_time_left - delta)
 		day_tick.emit(_day_time_left)
@@ -74,6 +83,11 @@ func notify_player_died() -> void:
 	run_lost.emit()
 
 
+## Called by enemies when they are killed (traps, etc.).
+func notify_mutant_killed() -> void:
+	mutants_killed += 1
+
+
 ## Debug helper bound to the `phase_skip` input action.
 ## In DAY: forces dawn-to-dusk by zeroing the timer.
 ## In NIGHT: pretends the wave was cleared.
@@ -94,10 +108,16 @@ func get_night_elapsed() -> float:
 	return _night_elapsed
 
 
+## Total wall-clock time the player has survived this run (day + night).
+func get_survival_time_seconds() -> float:
+	return _survival_time_seconds
+
+
 func add_supplies(amount: int) -> void:
 	if amount <= 0:
 		return
 	supplies = maxi(0, supplies + amount)
+	total_supplies_collected += amount
 	supplies_changed.emit(supplies)
 
 
